@@ -1,1 +1,8 @@
+/__pycache__
+/.vscode
 test_file.gpx
+
+*with_cadence.gpx
+*without_cadence.gpx
+
+terry*
