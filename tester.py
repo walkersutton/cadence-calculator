@@ -1,39 +1,41 @@
 # created by walker
 # https://walkercsutton.com
-# @walkercsutton
 
 import os
+import sys
 from lxml import etree
 import plotly.graph_objects as go
+from collections import deque
+from statistics import mean
+import math
 
-from calculator import generateCadence, generateSpeed
+from calculator import generateCadence, generateSpeed, generateDistance
 from utils import applicableElements
 
 DEBUG = True
 
-def getAverageCadenceList(tree):
+def actualCadenceList(tree):
 	elements = applicableElements(tree)
-	cur_cadences = []
-	avg_cadences = []
-	cur_index = 0
+	cadences = []
 
 	for element in tree.iter():
 		if (element.tag in elements['cadences']):
-			cur_cadences.append(int(element.text))
-			if (len(cur_cadences) == len(elements['cadences'])):
-				sum = 0
-				for cadence in cur_cadences:
-					sum += cadence
-				avg_cadences.append(sum // len(elements['cadences']))
-				cur_cadences = []
+			cadences.append(float(element.text))
 				
-	return avg_cadences
+	return cadences
 
-def getDerivedCadenceList(tree, cog, chainring, tire_width, wheel_diameter):
+def derivedCadenceList(tree, cog, chainring, tire_width, wheel_diameter):
 	elements = applicableElements(tree)
 	derived_cadence = []
 	last_lon = 0.0
 	last_lat = 0.0
+	window = deque([0,0,0], maxlen=8)
+	delta = 25
+	smoothie = .6
+
+	distances = havList(tree)
+	distances.sort()
+	max_cutoff = distances[int(len(distances) * .96)] * 60 / (math.pi * (wheel_diameter + (2 * tire_width)) * (chainring / cog)) 
 
 	# if the gpx file already contains `extensions` elements
 	if elements['extensions'] != '':
@@ -42,7 +44,22 @@ def getDerivedCadenceList(tree, cog, chainring, tire_width, wheel_diameter):
 				lat = float(element.attrib["lat"])
 				lon = float(element.attrib["lon"])
 			if (element.tag == elements['extensions']):
-				derived_cadence.append(generateCadence((last_lat, last_lon), (lat, lon), cog, chainring, tire_width, wheel_diameter))
+				cadence = float(generateCadence((last_lat, last_lon), (lat, lon), cog, chainring, tire_width, wheel_diameter))
+				m = mean(window)
+				if (cadence > max_cutoff):
+					cadence = 0
+					# cadence = m
+				elif (cadence > m + delta and cadence < m - delta):
+					print('correcting bad value: ' + str(cadence) + "to this better value: " + str(m))
+					cadence = m
+				else:
+					if (cadence > m):
+						cadence -= (abs(m - cadence) * smoothie)
+					else:
+						cadence +=(abs(m - cadence) * smoothie)
+				derived_cadence.append(cadence)
+
+				window.append(cadence)
 				last_lat = lat
 				last_lon = lon
 	# if the gpx file doesn't contain `extensions` elements
@@ -51,16 +68,30 @@ def getDerivedCadenceList(tree, cog, chainring, tire_width, wheel_diameter):
 			if (element.tag == elements['trkpt']):
 				lat = float(element.attrib["lat"])
 				lon = float(element.attrib["lon"])
-				derived_cadence.append(generateCadence((last_lat, last_lon), (lat, lon), cog, chainring, tire_width, wheel_diameter))
+				cadence = generateCadence((last_lat, last_lon), (lat, lon), cog, chainring, tire_width, wheel_diameter)
+				m = mean(window)
+				if (cadence > m + delta and cadence < m - delta):
+					cadence = m
+					derived_cadence.append(cadence)
+				else:
+					if (cadence > m):
+						cadence = cadence - (abs(m - cadence) * smoothie)
+					else:
+						cadence = cadence + (abs(m - cadence) * smoothie)
+				derived_cadence.append(cadence)
+				window.append(cadence)
+				# if (cadence > (m * (1 - delta)) or cadence < (m * (1 + delta))):
+				# 	derived_cadence.append(cadence)
+				# 	window.append(cadence)
 				last_lat = lat
 				last_lon = lon
 
 	return derived_cadence
 
 # TODO remove once data is smoothed
-def getSpeedList(tree):
+def havList(tree):
 	elements = applicableElements(tree)
-	speeds = []
+	distances = []
 	last_lon = 0.0
 	last_lat = 0.0
 
@@ -71,7 +102,7 @@ def getSpeedList(tree):
 				lat = float(element.attrib["lat"])
 				lon = float(element.attrib["lon"])
 			if (element.tag == elements['extensions']):
-				speeds.append(generateSpeed((last_lat, last_lon), (lat, lon)))
+				distances.append(float(generateDistance((last_lat, last_lon), (lat, lon))))
 				last_lat = lat
 				last_lon = lon
 	# if the gpx file doesn't contain `extensions` elements
@@ -80,20 +111,15 @@ def getSpeedList(tree):
 			if (element.tag == elements['trkpt']):
 				lat = float(element.attrib["lat"])
 				lon = float(element.attrib["lon"])
-				speeds.append(generateSpeed((last_lat, last_lon), (lat, lon)))
+				distances.append(float(generateDistance((last_lat, last_lon), (lat, lon))))
 				last_lat = lat
 				last_lon = lon
 
-	return speeds
+	return distances
 
 def main():
-	#TODO fix this to only allow files in same directory
-	if DEBUG:
-		gpx_filename = "../terry_full_orig.gpx"
-	else:
-		gpx_filename = input("Enter path of GPX filename: ") 
-
-	gpx_filename_fullpath = os.path.abspath(os.path.join('data', gpx_filename))
+	gpx_filename = sys.argv[1]
+	gpx_filename_fullpath = os.path.abspath(gpx_filename)
 	tree = etree.parse(gpx_filename_fullpath)
 
 	cog = -1
@@ -104,6 +130,8 @@ def main():
 	if DEBUG: 
 		cog = 14
 		chainring = 49
+		# cog = 16
+		# chainring = 48
 		tire_width = 25
 		wheel_diameter = 622
 	else:
@@ -115,20 +143,35 @@ def main():
 	if (cog < 0 or chainring < 0 or tire_width < 0 or wheel_diameter < 0):
 		exit("At least one of your submitted values is invalid. Try again.")
 
-	avg_cadence = getAverageCadenceList(tree)
-	derived_cadence = getDerivedCadenceList(tree, cog, chainring, tire_width, wheel_diameter)
-	speeds = getSpeedList(tree)
+	actual_cadence = actualCadenceList(tree)
+	derived_cadence = derivedCadenceList(tree, cog, chainring, tire_width, wheel_diameter)
+	# speeds = speedList(tree)
 	seconds = []
 
-	for ii in range (0, len(avg_cadence)):
-		seconds.append(ii)
 
+	for ii in range (0, len(derived_cadence)):
+		seconds.append(ii)
+	c = 0
+	# print("avg len: " + str(len(avg_cadence)))
+	# print("der len: " + str(len(derived_cadence)))
+	# print("sec len: " + str(len(seconds)))
+	# for i in seconds:
+	# 	avg = avg_cadence[i - 1]
+	# 	der = derived_cadence[i - 2]
+	# 	if (abs(avg - der) > 10 and der != 0):
+	# 		# print("sec: " + str(i - 1) + "        avg: " + str(avg) + "      der: " + str(der))
+	# 		c += 1
+
+	# print("count: " + str(c))
 	fig = go.Figure()
-	fig.add_trace(go.Scatter(x=seconds, y=avg_cadence, name='actual cadence', line=dict(color='firebrick', width=2)))
-	fig.add_trace(go.Scatter(x=seconds, y=derived_cadence, name = 'derived cadence', line=dict(color='royalblue', width=2)))
+	
+	fig.add_trace(go.Scatter(x=seconds, y=actual_cadence, name='actual cadence', line=dict(color='firebrick', width=2)))
+
+	fig.add_trace(go.Scatter(x=seconds, y=derived_cadence, name = 'derived cadence', line=dict(color='royalblue', width=4)))
 	# TODO remove once data is smoothed
-	# fig.add_trace(go.Scatter(x=seconds, y=speeds, name = 'perceived speed', line=dict(color='#AB63FA', width=6)))
-	fig.update_layout(title='actual cadence vs derived cadence',
+	
+	
+	fig.update_layout(title=str('actual cadence vs derived cadence'),
 										xaxis_title='seconds',
 										yaxis_title='cadence (RPM)')
 	fig.show()
