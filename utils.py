@@ -1,6 +1,5 @@
 # created by walker
 # https://walkercsutton.com
-# @walkercsutton
 
 from lxml import etree
 
