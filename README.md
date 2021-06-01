@@ -10,6 +10,9 @@ Cadence Calculator is a tool for fixed gear riders that allows users to **add ca
 
 ## Installation
 Should you have any problems while installing or using the tool, please open up a [new issue](https://github.com/walkersutton/cadence-calculator/issues).
+#### Requirements
+* `pip`
+* `python 3` (check required version)
 #### Basic
 1. Download [this file](https://github.com/walkersutton/cadence-calculator/issues)
 2. TODO
