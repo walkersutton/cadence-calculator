@@ -4,7 +4,7 @@
 
 <!-- [![Github All Releases](https://img.shields.io/github/downloads/walkersutton/cadence-calculator/total.svg)]() -->
 
-Cadence Calculator is a tool for fixed gear riders that allows you to **add cadence data to your Strava/GPX activities.**
+Cadence Calculator is a tool for fixed gear riders that allows users to **add cadence data to your Strava/GPX activities.**
 
 ![Cadence Calculator](https://i.imgur.com/xoy5skH.png)
 
