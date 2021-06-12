@@ -57,7 +57,8 @@ def token_exchange(code, scope):
         'code': code,
         'grant_type': 'authorization_code'
     }
-    # print(data)
+    print('token_exchange_data:')
+    print(data)
     response = requests.post(url=url, data=data)
 
     if response.status_code == 200:
