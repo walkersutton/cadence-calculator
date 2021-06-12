@@ -15,7 +15,9 @@ DBNAME = 'postgres'
 DBHOST = 'strava-tokens.c0jcpczh71tk.us-east-1.rds.amazonaws.com'
 
 # TODO - break auth_url into sub pieces, maybe make a simple fn auth_url()
-AUTH_URL = 'https://www.strava.com/oauth/authorize?client_id=65000&redirect_uri=http://cadencecalculator.herokuapp.com/auth&response_type=code&scope=read_all'
+# redirect_uri = 'http://localhost:5000/auth'
+redirect_uri =  http://cadencecalculator.herokuapp.com/auth
+AUTH_URL = 'https://www.strava.com/oauth/authorize?client_id=65000&redirect_uri=' + redirect_uri + '&response_type=code&scope=read_all'
 
 app = Flask(__name__)
 
@@ -57,8 +59,9 @@ def token_exchange(code, scope):
         'code': code,
         'grant_type': 'authorization_code'
     }
-    print('token_exchange_data:')
-    print(data)
+    # if DEBUG: TODO if want to put debugs
+    # print('token_exchange_data:')
+    # print(data)
     response = requests.post(url=url, data=data)
 
     if response.status_code == 200:
