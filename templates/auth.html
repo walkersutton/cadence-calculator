@@ -1,0 +1,8 @@
+{% if status == 'success' %}
+    <p>a successs!!!</p>
+{% elif status == 'error' %}
+    <p>there was an error</p>
+{% else %}
+    <p>need to provide more access, try again</p>
+    <a href="https://www.strava.com/oauth/authorize?client_id=65000&redirect_uri=http://localhost:5000/auth&response_type=code&scope=read_all">Authorize Cadence Calculator access to your Strava data</a>
+{% endif %}
