@@ -1,41 +1,53 @@
 from flask import Flask, jsonify, render_template, request
-from flask_sqlalchemy import SQLAlchemy
 import json
 import os
+import psycopg2
 import requests
 
 CLIENT_ID = os.environ.get('CADENCE_CALCULATOR_CLIENT_ID')
 CLIENT_SECRET = os.environ.get('CADENCE_CALCULATOR_CLIENT_SECRET')
+
+# TODO - bring these into env vars
+# maybe change user and db names on aws???
+DBUSER ***REMOVED***
+DBPASSWORD = '***REMOVED***'
+DBNAME ***REMOVED***
+DBHOST = '***REMOVED***'
+
+# TODO - break auth_url into sub pieces, maybe make a simple fn auth_url()
 AUTH_URL = 'https://www.strava.com/oauth/authorize?client_id=65000&redirect_uri=http://cadencecalculator.herokuapp.com/auth&response_type=code&scope=read_all'
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////app/tokens.db'
-db = SQLAlchemy(app)
 
-class Access(db.Model):
-    __tablename__ = 'access_token'
-    access_token = db.Column(
-        db.String(64),
-        index=True)
-    athlete_id = db.Column(
-        db.Integer,
-        primary_key=True)
-    expires_at = db.Column(
-        db.Integer,
-        index=True) 
-    scope = db.Column(
-        db.Boolean)
+def create_db_conn():
+    try:
+        conn = psycopg2.connect(
+            user=DBUSER,
+            password=DBPASSWORD,
+            host=DBHOST,
+            dbname=DBNAME)
+        return conn
+    except Exception as e:
+        print('error creating connection to database:')
+        print(e)
 
-class Refresh(db.Model):
-    __tablename__ = 'refresh_token'
-    athlete_id = db.Column(
-        db.Integer,
-        db.ForeignKey('access_token.athlete_id'),
-        primary_key=True)
-    refresh_token = db.Column(
-        db.String(64),
-        index=True)
-    scope = db.Column(db.Boolean)
+def insert_access_token(conn, athlete_id, scope, access_token, expires_at):
+    try:
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO access_tokens VALUES (%s, %s, %s, %s);", (athlete_id, scope, access_token, expires_at))
+        conn.commit()
+    except Exception as e:
+        print('error populating access token:')
+        print(e)
+
+def insert_refresh_token(conn, athlete_id, code, scope):
+    try:
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO refresh_tokens VALUES (%s, %s, %s);", (athlete_id, code, scope))
+        conn.commit()
+    except Exception as e:
+        print('error populating refresh token:')
+        print(e)
 
 def token_exchange(code, scope):
     url = 'https://www.strava.com/oauth/token'
@@ -45,8 +57,9 @@ def token_exchange(code, scope):
         'code': code,
         'grant_type': 'authorization_code'
     }
-    print(data)
+    # print(data)
     response = requests.post(url=url, data=data)
+
     if response.status_code == 200:
         obj = response.json()
         athlete_id = obj['athlete']['id']
@@ -54,55 +67,18 @@ def token_exchange(code, scope):
         refresh_token = obj['refresh_token']
         access_token = obj['access_token']
         token_type = obj['token_type']
-
-        access_entry = Access(access_token=access_token, athlete_id=athlete_id, expires_at=expires_at, scope=scope)
-        refresh_entry = Refresh(athlete_id=athlete_id, refresh_token=refresh_token, scope=scope) 
-        db.session.add(access_entry)
-        db.session.add(refresh_entry)
-        db.session.commit()
+        try:
+            conn = create_db_conn()
+            insert_access_token(conn, athlete_id, scope, access_token, expires_at)
+            insert_refresh_token(conn, athlete_id, code, scope)
+        except Exception as e:
+            print('error establishing initial connecting with database:')
+            print(e)
     else:
-        print('bad token exchange')
+        print('token exchange failed:')
         print(response.status_code)
         print(response.json())
 
-# @app.route('/getmsg/', methods=['GET'])
-# def respond():
-#     # Retrieve the name from url parameter
-#     name = request.args.get("name", None)
-# 
-#     # For debugging
-#     print(f"got name {name}")
-# 
-#     response = {}
-# 
-#     # Check if user sent a name at all
-#     if not name:
-#         response["ERROR"] = "no name found, please send a name."
-#     # Check if the user entered a number not a name
-#     elif str(name).isdigit():
-#         response["ERROR"] = "name can't be numeric."
-#     # Now the user entered a valid name
-#     else:
-#         response["MESSAGE"] = f"Welcome {name} to our awesome platform!!"
-# 
-#     # Return the response in json format
-#     return jsonify(response)
-# 
-# @app.route('/post/', methods=['POST'])
-# def post_something():
-#     param = request.form.get('name')
-#     print(param)
-#     # You can add the test cases you made in the previous function, but in our case here you are just testing the POST functionality
-#     if param:
-#         return jsonify({
-#             "Message": f"Welcome {name} to our awesome platform!!",
-#             # Add this option to distinct the POST request
-#             "METHOD" : "POST"
-#         })
-#     else:
-#         return jsonify({
-#             "ERROR": "no name found, please send a name."
-#         })
 
 # A welcome message to test our server
 @app.route('/')
