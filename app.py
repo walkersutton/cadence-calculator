@@ -6,6 +6,7 @@ import requests
 
 CLIENT_ID = os.environ.get('CADENCE_CALCULATOR_CLIENT_ID')
 CLIENT_SECRET = os.environ.get('CADENCE_CALCULATOR_CLIENT_SECRET')
+AUTH_URL = 'https://www.strava.com/oauth/authorize?client_id=65000&redirect_uri=http://cadencecalculator.herokuapp.com/auth&response_type=code&scope=read_all'
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////app/tokens.db'
@@ -106,9 +107,9 @@ def token_exchange(code, scope):
 # A welcome message to test our server
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', auth_url=AUTH_URL)
 
-# 
+# strava Oauth redirect 
 @app.route('/auth')
 def auth():
     # TODO change to include activity:write eventually
@@ -127,7 +128,7 @@ def auth():
             status = 'insufficient authorization'
             token_exchange(code, False)
     
-    return render_template('auth.html', status=status)    
+    return render_template('auth.html', status=status, auth_url=AUTH_URL)
 
 
 if __name__ == '__main__':
