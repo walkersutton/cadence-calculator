@@ -1,3 +1,4 @@
+from datetime import date
 from flask import Flask, jsonify, render_template, request
 import json
 import os
@@ -9,30 +10,38 @@ import threading
 CLIENT_ID = os.environ.get('CADENCE_CALCULATOR_CLIENT_ID')
 CLIENT_SECRET = os.environ.get('CADENCE_CALCULATOR_CLIENT_SECRET')
 
-# TODO - bring these into env vars
-# maybe change user and db names on aws???
-DBUSER = 'postgres'
-DBPASSWORD = 'youUUUUthat4234lliewithASTHEidk101'
-DBNAME = 'postgres'
-DBHOST = 'strava-tokens.c0jcpczh71tk.us-east-1.rds.amazonaws.com'
+# TODO maybe change user and db names on aws???
+DBHOST = os.environ.get('CADENCE_CALCULATOR_DBHOST')
+DBNAME = os.environ.get('CADENCE_CALCULATOR_DBNAME')
+DBPASSWORD = os.environ.get('CADENCE_CALCULATOR_DB_PASSWORD')
+DBUSER = os.environ.get('CADENCE_CALCULATOR_DBUSER')
 
 app = Flask(__name__)
 
 def auth_url():
-    endpoint = 'https://www.strava.com/oauth/authorize'
+    auth_endpoint = 'https://www.strava.com/oauth/authorize'
     redirect_uri = 'https://cadencecalculator.herokuapp.com/auth'
     client_id = 65000
-    return f'{endpoint}?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope={scope}'
+    return f'{auth_endpoint}?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope={scope}'
+    
+def update_security_group():
+    group_id = 'sg-4fa8883b'
+    ip = json.loads(requests.get('https://httpbin.org/ip').text)['origin']
+    description = '"Heroku public ip on ' + str(date.today()) + '"'
+    cmd = 'aws'
+    params = f"ec2 authorize-security-group-ingress --group-id {group_id} --ip-permissions IpProtocol=tcp,FromPort=0,ToPort=65535,IpRanges='[{{CidrIp={ip}/32,Description={description}}}]"
+    subprocess.run([cmd, params])
 
 def create_db_conn():
     try:
+        update_security_group()
         print('connecting to db')
         conn = psycopg2.connect(
             user=DBUSER,
             password=DBPASSWORD,
             host=DBHOST,
             dbname=DBNAME)
-        print('connected!')
+        print('connected to db!')
         return conn
     except Exception as e:
         print('error creating connection to database:')
@@ -112,7 +121,6 @@ def auth():
         status = 'success' if given_scope == required_scope else 'insufficient authorization'
 
     return render_template('auth.html', status=status, auth_url=auth_url())
-
 
 if __name__ == '__main__':
     # Threaded option to enable multiple instances for multiple user access support
