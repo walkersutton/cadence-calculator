@@ -7,6 +7,10 @@ import requests
 import subprocess
 import threading
 
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+
+# rename client_id -> strava_id??
 CLIENT_ID = os.environ.get('CADENCE_CALCULATOR_CLIENT_ID')
 CLIENT_SECRET = os.environ.get('CADENCE_CALCULATOR_CLIENT_SECRET')
 
@@ -18,6 +22,20 @@ DBUSER = os.environ.get('CADENCE_CALCULATOR_DBUSER')
 
 app = Flask(__name__)
 
+def configure_aws():
+    default = '[default]\n'
+    subprocess.run(["mkdir", "~.aws/"])
+    filenames = ['config', 'credentials']
+    content = {
+        'config': [default, 'region = us-east-1\n', 'output = json'],
+        'credentials': [default, f'aws_access_key_id = {AWS_ACCESS_KEY_ID}\n', f'aws_secret_access_key = {AWS_SECRET_ACCESS_KEY}']
+    }
+    for filename in filenames:
+        f = open(f'~.aws/{filename}', 'w')
+        for line in content[filename]:
+            f.write(line)
+        f.close()
+
 def auth_url():
     auth_endpoint = 'https://www.strava.com/oauth/authorize'
     redirect_uri = 'https://cadencecalculator.herokuapp.com/auth'
@@ -28,7 +46,7 @@ def update_security_group():
     group_id = 'sg-4fa8883b'
     ip = json.loads(requests.get('https://httpbin.org/ip').text)['origin']
     description = '"Heroku public ip on ' + str(date.today()) + '"'
-    cmd = 'aws'
+    cmd = "aws"
     params = f"ec2 authorize-security-group-ingress --group-id {group_id} --ip-permissions IpProtocol=tcp,FromPort=0,ToPort=65535,IpRanges='[{{CidrIp={ip}/32,Description={description}}}]"
     subprocess.run([cmd, params])
 
@@ -124,4 +142,5 @@ def auth():
 
 if __name__ == '__main__':
     # Threaded option to enable multiple instances for multiple user access support
+    configure_aws()
     app.run(threaded=True, port=5000)
