@@ -31,7 +31,6 @@ def create_db_conn():
             host=DBHOST,
             dbname=DBNAME)
         print('connected!')
-        conn = psycopg2.connect(
         return conn
     except Exception as e:
         print('error creating connection to database:')
