@@ -3,6 +3,7 @@ import json
 import os
 import psycopg2
 import requests
+import threading
 
 CLIENT_ID = os.environ.get('CADENCE_CALCULATOR_CLIENT_ID')
 CLIENT_SECRET = os.environ.get('CADENCE_CALCULATOR_CLIENT_SECRET')
@@ -98,16 +99,14 @@ def auth():
     error = request.args.get('error')
     scope = request.args.get('scope')
     given_scope = set(scope.split(',')) if scope else {}
+    status = ''
+   
     if error:
         status = 'error'
     else:
-        if given_scope == required_scope:
-            status  = 'success'
-            # token_exchange(code, True)
-        else:
-            status = 'insufficient authorization'
-            # token_exchange(code, False)
-    
+        threading.Thread(target=token_exchange, args=(code, given_scope == required_scope).start()
+        status = 'success' if given_scope == required_scope else 'insufficient authorization'
+
     return render_template('auth.html', status=status, auth_url=AUTH_URL)
 
 
