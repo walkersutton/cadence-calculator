@@ -3,6 +3,7 @@ import json
 import os
 import psycopg2
 import requests
+import subprocess
 import threading
 
 CLIENT_ID = os.environ.get('CADENCE_CALCULATOR_CLIENT_ID')
@@ -15,12 +16,13 @@ DBPASSWORD = '***REMOVED***'
 DBNAME ***REMOVED***
 DBHOST = '***REMOVED***'
 
-# TODO - break auth_url into sub pieces, maybe make a simple fn auth_url()
-# redirect_uri = 'http://localhost:5000/auth'
-redirect_uri = 'https://cadencecalculator.herokuapp.com/auth'
-AUTH_URL = 'https://www.strava.com/oauth/authorize?client_id=65000&redirect_uri=' + redirect_uri + '&response_type=code&scope=read_all'
-
 app = Flask(__name__)
+
+def auth_url():
+    endpoint = 'https://www.strava.com/oauth/authorize'
+    redirect_uri = 'https://cadencecalculator.herokuapp.com/auth'
+    client_id ***REMOVED***
+    return f'{endpoint}?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope={scope}'
 
 def create_db_conn():
     try:
@@ -90,7 +92,7 @@ def token_exchange(code, scope):
 # A welcome message to test our server
 @app.route('/')
 def index():
-    return render_template('index.html', auth_url=AUTH_URL)
+    return render_template('index.html', auth_url=auth_url())
 
 # strava Oauth redirect 
 @app.route('/auth')
@@ -109,7 +111,7 @@ def auth():
         threading.Thread(target=token_exchange, args=(code, given_scope == required_scope)).start()
         status = 'success' if given_scope == required_scope else 'insufficient authorization'
 
-    return render_template('auth.html', status=status, auth_url=AUTH_URL)
+    return render_template('auth.html', status=status, auth_url=auth_url())
 
 
 if __name__ == '__main__':
