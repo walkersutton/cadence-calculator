@@ -39,6 +39,7 @@ def configure_aws():
 def auth_url():
     auth_endpoint = 'https://www.strava.com/oauth/authorize'
     redirect_uri = 'https://cadencecalculator.herokuapp.com/auth'
+    scope = 'activity:read_all'
     client_id = 65000
     return f'{auth_endpoint}?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope={scope}'
     
