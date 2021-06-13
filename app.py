@@ -16,7 +16,7 @@ DBHOST = 'strava-tokens.c0jcpczh71tk.us-east-1.rds.amazonaws.com'
 
 # TODO - break auth_url into sub pieces, maybe make a simple fn auth_url()
 # redirect_uri = 'http://localhost:5000/auth'
-redirect_uri =  https://cadencecalculator.herokuapp.com/auth
+redirect_uri = 'https://cadencecalculator.herokuapp.com/auth'
 AUTH_URL = 'https://www.strava.com/oauth/authorize?client_id=65000&redirect_uri=' + redirect_uri + '&response_type=code&scope=read_all'
 
 app = Flask(__name__)
