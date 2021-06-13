@@ -104,7 +104,7 @@ def auth():
     if error:
         status = 'error'
     else:
-        threading.Thread(target=token_exchange, args=(code, given_scope == required_scope).start()
+        threading.Thread(target=token_exchange, args=(code, given_scope == required_scope)).start()
         status = 'success' if given_scope == required_scope else 'insufficient authorization'
 
     return render_template('auth.html', status=status, auth_url=AUTH_URL)
