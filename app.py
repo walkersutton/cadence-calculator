@@ -24,11 +24,14 @@ app = Flask(__name__)
 
 def create_db_conn():
     try:
+        print('connecting to db')
         conn = psycopg2.connect(
             user=DBUSER,
             password=DBPASSWORD,
             host=DBHOST,
             dbname=DBNAME)
+        print('connected!')
+        conn = psycopg2.connect(
         return conn
     except Exception as e:
         print('error creating connection to database:')
