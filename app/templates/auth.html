@@ -1,8 +1,0 @@
-{% if status == 'success' %}
-    <p>a successs!!!</p>
-{% elif status == 'error' %}
-    <p>there was an error</p>
-{% else %}
-    <p>need to provide more access, try again</p>
-    <a href={{ auth_url }}>Authorize Cadence Calculator access to your Strava data</a>
-{% endif %}
