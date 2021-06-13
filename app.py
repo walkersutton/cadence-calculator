@@ -103,10 +103,10 @@ def auth():
     else:
         if given_scope == required_scope:
             status  = 'success'
-            token_exchange(code, True)
+            # token_exchange(code, True)
         else:
             status = 'insufficient authorization'
-            token_exchange(code, False)
+            # token_exchange(code, False)
     
     return render_template('auth.html', status=status, auth_url=AUTH_URL)
 
