@@ -1,3 +1,0 @@
-[submodule "app"]
-	path = app
-	url = https://git.heroku.com/cadencecalculator.git
