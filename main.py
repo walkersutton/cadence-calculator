@@ -1,6 +1,3 @@
-# created by walker
-# https://walkercsutton.com
-
 import os
 import sys
 from lxml import etree

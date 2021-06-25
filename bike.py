@@ -1,6 +1,3 @@
-# created by walker
-# https://walkercsutton.com
-
 from haversine import Unit
 
 class Bike():

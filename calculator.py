@@ -1,6 +1,3 @@
-# created by walker
-# https://walkercsutton.com
-
 from haversine import haversine, Unit
 from lxml import etree
 from enum import Enum

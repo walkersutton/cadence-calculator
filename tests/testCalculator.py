@@ -1,6 +1,3 @@
-# created by walker
-# https://walkercsutton.com
-
 import unittest
 import sys
 # sys.path.insert(1, '../calculator')
