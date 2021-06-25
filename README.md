@@ -1,5 +1,7 @@
 # Cadence Calculator
 
+![Cadence Calculator Logo](https://i.imgur.com/XCdXTfzt.jpg)
+
 <!-- **Read more about this project [here](https://walkercsutton.com/projects/cadence-calculator).** -->
 
 ![Cadence Data Generation](https://i.imgur.com/ThHWdmr.gif)
