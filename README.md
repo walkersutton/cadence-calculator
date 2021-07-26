@@ -40,7 +40,7 @@ TODO
 ```
 ├── LICENSE
 ├── README.md
-├── requirements.text     # python dependencies
+├── requirements.txt     # python dependencies
 ├── calculator.py         # cadence computation logic
 ├── main.py               # adds cadence values to a cadence-less GPX file
 ├── tester.py             # used to verify accuracy of computed cadence values
