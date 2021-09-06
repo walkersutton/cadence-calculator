@@ -1,93 +1,152 @@
-from haversine import haversine, Unit
+import os
+import sys
 from lxml import etree
-from enum import Enum
+from collections import deque
+from statistics import mean
 import math
 
-class TIMEUNIT(Enum):
-	SECOND = 1
-	MINUTE = 60
-	HOUR = 3600
+from calculator import generateCadence, generateMPH
+from utils import applicableElements
+from tester import havList
 
-def distance(orig, dest, dist_unit=Unit.METERS):
-	""" Generates a float representing the distance between two GPS coordinates
+DEBUG = True
 
-	Args:
-		orig: (float, float)
-			The origin GPS coordinate in (lat, lon) format
-		dest: (float, float)
-			The destination GPS coordinate in (lat, lon) format
-		[dist_unit]: haversine.Unit
-			The unit to be used for length
-
-	Returns
-		The distance (in dist_units) between the two coordinates
-	"""
-	if (orig == (0.0, 0.0)):
-		computed_distance = 0
-	else :
-		computed_distance = haversine(orig, dest, dist_unit)
-
-	return computed_distance
-
-def cadence(orig, dest, cog, chainring, tire_width, wheel_diameter, dist_unit=Unit.METERS, time_rate=TIMEUNIT.MINUTE):
-	""" Generates an integer value for the instantaneous cadence
-
-	Args:
-		orig: (float, float)
-			The origin GPS coordinate in (lat, lon) format
-		dest: (float, float)
-			The destination GPS coordinate in (lat, lon) format
-		cog: int
-			The cog size
-		chainring: int
-			The chainring size
-		tire_width: int
-			The tire width in milimeters
-		wheel_diameter: int
-			The wheel diameter in milimeters
-		[dist_unit]: haversine.Unit
-			The unit to be used for length
-		[time_rate]: TIMEUNIT
-			The rate at which the speed should be computed, represented as a TIMEUNIT
+def main():
+	gpx_filename = sys.argv[1]
 	
-	Returns
-		The instantaneous cadence as an integer in revolutions per time_rate
-	"""
-	if (orig == (0.0, 0.0)):
-		computed_cadence = 0
-	else :
-		# coordinates are measured in 1 second intervals
-		# convert into mm (because I measure tire width in mm)
-		# TODO support other systems of measurement
-		MILIMETER_TO_METER = 1000
-		computed_speed = speed(orig, dest, dist_unit=dist_unit, time_rate=time_rate)
-		computed_cadence = computed_speed / (math.pi * ((wheel_diameter + (2 * tire_width)) / MILIMETER_TO_METER) * (chainring / cog))
-		
-	return int(computed_cadence)
-
-def speed(orig, dest, dist_unit=Unit.METERS, time_rate=TIMEUNIT.HOUR):
-	""" Generates an integer value for the instantaneous speed
-
-	Args:
-		orig: (float, float)
-			The origin GPS coordinate in (lat, lon) format
-		dest: (float, float)
-			The destination GPS coordinate in (lat, lon) format
-		[dist_unit]: haversine.Unit
-			The unit to be used for length
-		[time_rate]: TIMEUNIT
-			The rate at which the speed should be computed, represented as a TIMEUNIT
+	# gpx_filename_fullpath = os.path.abspath(os.path.join('data', gpx_filename))
+	gpx_filename_fullpath = os.path.abspath(gpx_filename)
 	
-	Returns
-		The instantaneous speed as an integer
-	"""
-	if (orig == (0.0, 0.0)):
-		computed_speed = 0
-	else :
-		# coordinates are measured in 1 second intervals
-		computed_distance = distance(orig, dest, dist_unit)
-		computed_speed = computed_distance * time_rate.value
-		# TODO this was a check to make sure speed wasn't ridiculous (over 60mph) - do this more sensibly
-		# if (computed_speed > 60):
-		# 	computed_speed = 0
-	return int(computed_speed)
+	cog = -1
+	chainring = -1
+	tire_width = -1
+	wheel_diameter = -1
+
+	if DEBUG: 
+		cog = 16
+		chainring = 48
+		tire_width = 25
+		wheel_diameter = 622
+	else:
+		cog = input("# of teeth on cog: ")
+		chainring = input("# of teeth on chainring: ")
+		tire_width = input("Tire width (in mm): ")
+		wheel_diameter = input("Wheel diameter (in mm): ")
+	
+	if (cog < 0 or chainring < 0 or tire_width < 0 or wheel_diameter < 0):
+		exit("One or more of your submitted values is invalid. Try again.")
+
+	tree = etree.parse(gpx_filename_fullpath)
+	root = tree.getroot()
+	elements = applicableElements(tree)
+
+	distances = havList(tree)
+	distances.sort()
+	max_cutoff = distances[int(len(distances) * .96)] * 60 / (math.pi * (wheel_diameter + (2 * tire_width)) * (chainring / cog)) 
+
+	if (distances[int(len(distances) * .96)] > 25000):
+		exit("you got some SHIT GPS - fuck off")
+
+	last_lon = 0.0
+	last_lat = 0.0
+
+	time = 0
+
+	cadences = []
+	seconds = []
+	speeds = []
+	window = deque([0,0,0], maxlen=3)
+	delta = int(sys.argv[2]) # 100 # larger value, less smooth - min val is 0
+	smoothie = float(sys.argv[3]) # .0 # smaller value, less smooth - max val is 1
+	print("max cutoff: "  + str(max_cutoff))
+
+	# if the gpx file already contains `extensions` elements
+	if elements['extensions'] != '':
+		for element in tree.iter():
+			seconds.append(time)
+			if (element.tag == elements['trkpt']):
+				lat = float(element.attrib["lat"])
+				lon = float(element.attrib["lon"])
+			if (element.tag == elements['extensions']):
+				cadence = float(generateCadence((last_lat, last_lon), (lat, lon), cog, chainring, tire_width, wheel_diameter))
+				m = mean(window)
+				if m > 120:
+					print("the mean is: " + str(m))
+				if cadence > max_cutoff:
+					print('cadence is over the max cutoff')
+					cadence = m
+					print("particularly large cadence: " + str(cadence))
+					print("current mean: " + str(m))
+				elif (cadence > m + delta and cadence < m - delta):
+					print('correcting bad value: ' + str(cadence) + "to this better value: " + str(m))
+					cadence = m
+				else:
+					if (cadence > m):
+						cadence -= (abs(m - cadence) * smoothie)
+					else:
+						cadence += (abs(m - cadence) * smoothie)
+				cadences.append(cadence)
+				window.append(cadence)
+				element.append(generateCadenceElement(str(cadence)))
+				# print(window)
+				last_lat = lat
+				last_lon = lon
+			time += 1
+
+	# if the gpx file doesn't contain `extensions` elements
+	else:
+		for element in tree.iter():
+			seconds.append(time)
+			if (element.tag == elements['trkpt']):
+				lat = float(element.attrib["lat"])
+				lon = float(element.attrib["lon"])
+				extensions_element = etree.Element("extensions")
+				cadence = int(generateCadence((last_lat, last_lon), (lat, lon), cog, chainring, tire_width, wheel_diameter))
+				m = mean(window)
+				if (cadence > m + delta and cadence < m - delta):
+					print('correcting bad value: ' + str(cadence) + "to this better value: " + str(m))
+					cadence = m
+				else:
+					if (cadence > m):
+						cadence = cadence - (abs(m - cadence) * smoothie)
+					else:
+						cadence = cadence + (abs(m - cadence) * smoothie)
+				cadences.append(cadence)
+				window.append(cadence)
+				element.append(generateCadenceElement(str(cadence)))
+				extensions_element.append(generateCadenceElement((last_lat, last_lon), (lat, lon), cog, chainring, tire_width, wheel_diameter))
+
+				last_lat = lat
+				last_lon = lon
+			time += 1
+
+
+	# cleanup
+	new_filename = os.path.basename(gpx_filename_fullpath)[:-4] + "_with_cadence.gpx"
+	tree.write(new_filename)
+
+	import plotly.graph_objects as go
+
+	fig = go.Figure()
+	fig.add_trace(go.Scatter(x=seconds, y=cadences, name='cadence', line=dict(color='firebrick', width=2)))
+	fig.update_layout(title=str('cadence: ' + str(gpx_filename) + " delta: " + str(delta) + " smoothie: " + str(smoothie)),
+										xaxis_title='seconds',
+										yaxis_title='RPM')
+	fig.show()
+
+	# import numpy as np	
+	# dists = dists[int(len(dists) * 0): int(len(dists) * .96)]
+	# fig = go.Figure(data=go.Histogram(x=dists, histnorm='probability'))
+	# fig.update_layout(title=gpx_filename)
+	# fig.show()
+
+
+	# TODO remove once data is smoothed	
+
+	if not DEBUG:
+		print("Successfully created a GPX file with cadence")
+		print("The new filename is: " + new_filename)
+		print("The file is in the directory with main.py")
+	
+# execute
+main()
