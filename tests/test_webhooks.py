@@ -1,9 +1,10 @@
+import webhooks
 import json
 import sys
 import unittest
 
 sys.path.append('..')
-import webhooks
+
 
 class TestWebhooks(unittest.TestCase):
 
@@ -32,6 +33,7 @@ class TestWebhooks(unittest.TestCase):
         json_response = json.dumps(response)
 
         self.assertEqual(webhooks.handle_event(json_event), json_response)
+
 
 if __name__ == '__main__':
     unittest.main()

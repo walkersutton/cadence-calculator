@@ -7,19 +7,24 @@ from subscriptions import get_subscription_id, delete_subscription, handle_event
 
 app = Flask(__name__)
 
+
 @app.route('/')
 def index():
     return render_template('index.html', title='Home', auth_url=auth_url())
- 
+
+
 @app.route('/about')
 def about():
     return render_template('about.html', title='About')
+
 
 @app.route('/help')
 def help():
     return render_template('help.html', title='Help')
 
 # Strava auth redirect
+
+
 @app.route('/auth')
 def auth():
     # TODO change to include activity:write eventually
@@ -29,7 +34,7 @@ def auth():
     scope = request.args.get('scope')
     access_scope = set(scope.split(',')) if scope else {}
     status = ''
-     
+
     if access_scope == required_scope:
         token_exchange(code)
         status = 'success'
@@ -37,24 +42,25 @@ def auth():
         status = 'insufficient authorization'
     if error:
         status = 'error'
-    
+
     # TODO: dynamic title here? - for template
     return render_template('auth.html', title='Authorization', status=status, auth_url=auth_url())
 
-@app.route('/subscribe', methods = ['GET', 'POST'])
+
+@app.route('/subscribe', methods=['GET', 'POST'])
 def subscribe():
     status_code = -1
     if request.method == 'GET':
-	# subscription validation request
+        # subscription validation request
         try:
             verify_token = request.args.get('hub.verify_token')
             challenge = request.args.get('hub.challenge')
-            body = json.dumps({'hub.challenge': challenge}) 
+            body = json.dumps({'hub.challenge': challenge})
             status_code = 200
         except Exception as e:
             app.logger.error('error validating callback address')
             app.logger.error(e)
-            body = "error handling GET request"  
+            body = "error handling GET request"
             status_code = 404
     elif request.method == 'POST':
         try:
@@ -64,14 +70,15 @@ def subscribe():
         except Exception as e:
             app.logger.error('error listening on webhooks endpoint')
             app.logger.error(e)
-            body = "error handling POST request"  
+            body = "error handling POST request"
             status_code = 404
-        
+
     response = make_response(body)
     response.status_code = status_code
     response.mimetype = 'application/json'
     return response
-        
+
+
 if __name__ == '__main__':
     # Threaded option to enable multiple instances for multiple user access support
     # auth.update_security_group()

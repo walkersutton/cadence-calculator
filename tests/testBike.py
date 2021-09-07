@@ -7,11 +7,11 @@ from calculator import cadence, distance, speed, TIMEUNIT
 
 
 class TestBike(unittest.TestCase):
-	def setUp(self):
-		self.cog = 16
-		self.chainring = 48
-		self.tire_width = 25
-		self.wheel_diameter = 622
+    def setUp(self):
+        self.cog = 16
+        self.chainring = 48
+        self.tire_width = 25
+        self.wheel_diameter = 622
 
 
 if __name__ == '__main__':
