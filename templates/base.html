@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Cadence Calculator | {{ title }}</title>
+        <link rel="stylesheet" href="{{ url_for("static", filename="css/styles.css") }}">
+        <link rel="shortcut icon" href="{{ url_for("static", filename="images/logo.svg") }}">
+    </head>
+
+    <body>
+
+        <div class="wrapper">
+
+            <div class="header">
+                <a href="/">
+                    <h1>
+                        <span>
+                            <span class="logo-text">C<sup>2</sup></span>
+                            Cadence Calculator
+                        </span>
+                    </h1>
+                </a>
+            </div> 
+            
+            <div class="menu">
+                <ul class="">
+                    <a href="/"><li>Home</li></a>
+                    <a href="/help"><li>Help</li></a>
+                    <a href="/about"><li>About</li></a>
+                </ul>
+            </div>
+
+            <div class="content">
+                {% block body %}
+                {% endblock %}
+            </div>
+
+            <div class="push"></div>
+
+        </div>
+
+        <footer class="footer">
+            <div id="strava-powered" class="center">
+                <img src={{ url_for("static", filename="images/api_logo_pwrdBy_strava_horiz_gray.svg") }} alt="Connect with Strava">
+            </div>
+        </footer> 
+
+    </body>
+</html>

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<h2>{{ title }}</h2>
+
+{% if status == 'success' %}
+    <p>Successfully connected your Strava account! Click <a href='/help'>here</a> to learn how the tool works.</p>
+{% elif status == 'error' %}
+    <p>There was an error, try again. If you continue to have issues, send us an email TODO</p>
+{% elif status == 'insufficient authorization' %}
+    <p>You need to provide more access, try again</p>
+    <a class='underline' href={{ auth_url }}>Authorize Cadence Calculator access to your Strava data</a>
+    <h3>TODO - replace gif with gif providing all permissions needed</h3>
+    <img class='gif' src={{ url_for('static', filename='images/auth.gif') }} alt='Give more permissions'>
+{% else %}
+    <p>something went wrong. :(</p>
+{% endif %}
+
+{% endblock %}

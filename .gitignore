@@ -8,3 +8,6 @@ test_file.gpx
 *without_cadence.gpx
 
 terry*
+
+*.swp
+*.json
