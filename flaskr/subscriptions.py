@@ -6,7 +6,7 @@ import sys
 import requests
 
 
-from activities import Activity
+from flaskr.activities import Activity
 import config
 
 # TODO add support for handling 429s

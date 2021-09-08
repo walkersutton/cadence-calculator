@@ -22,7 +22,10 @@ Should you have any problems while installing or using the tool, please open up 
 2. `cd cadence-calculator/`
 3. `python3 -m venv venv`
 4. `source venv/bin/activate`
-5. `python3 -m pip install -r requirements.txt`
+5. `pip install -e .`
+<!--6. `python3 -m pip install -r requirements.txt` - not sure if this is required anymore-->
+6. `flask run` 
+
 
 ## Usage
 1. Download your activity as a GPX file. [tutorial](https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export#:~:text=Export%20an%20Activity%20as%20a%20GPX%20file&text=Navigate%20to%20one%20of%20your,gpx%22.)

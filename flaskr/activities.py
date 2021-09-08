@@ -2,9 +2,9 @@
 import logging
 import requests
 import config
-from gpx import create_gpx
-from cadence import generate_cadence_data
-from auth import get_access_token
+from flaskr.gpx import create_gpx
+from flaskr.cadence import generate_cadence_data
+from flaskr.auth import get_access_token
 
 # from main import generate_cadence
 

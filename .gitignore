@@ -11,3 +11,7 @@ terry*
 
 *.swp
 *.json
+
+lint.sh
+
+*.egg-info
