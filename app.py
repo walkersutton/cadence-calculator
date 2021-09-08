@@ -1,5 +1,6 @@
-from flask import abort, Flask, make_response, render_template, request
+""" app.py """
 import json
+from flask import Flask, make_response, render_template, request
 # import logging
 
 from auth import auth_url, token_exchange
@@ -10,23 +11,28 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
+    """ index """
     return render_template('index.html', title='Home', auth_url=auth_url())
 
 
 @app.route('/about')
 def about():
+    """ about """
     return render_template('about.html', title='About')
 
 
+# pylint: disable=redefined-builtin
 @app.route('/help')
 def help():
+    """ help """
     return render_template('help.html', title='Help')
-
-# Strava auth redirect
 
 
 @app.route('/auth')
 def auth():
+    """
+    Strava auth redirect
+    """
     # TODO change to include activity:write eventually
     required_scope = {'read', 'activity:read_all'}
     code = request.args.get('code')
@@ -49,11 +55,12 @@ def auth():
 
 @app.route('/subscribe', methods=['GET', 'POST'])
 def subscribe():
+    """ subscribe """
     status_code = -1
     if request.method == 'GET':
         # subscription validation request
         try:
-            verify_token = request.args.get('hub.verify_token')
+            # verify_token = request.args.get('hub.verify_token')
             challenge = request.args.get('hub.challenge')
             body = json.dumps({'hub.challenge': challenge})
             status_code = 200

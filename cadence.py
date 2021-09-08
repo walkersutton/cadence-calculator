@@ -1,5 +1,4 @@
-import os
-import sys
+""" cadence.py """
 import logging
 from collections import deque
 from statistics import mean
@@ -33,6 +32,7 @@ def generate_cadence(distance_travelled, chainring, cog, wheel_diameter=622, tir
     except Exception as e:
         logging.error('error generating instantaneous cadence:')
         logging.error(e)
+        return None
 
 
 # might want tire_width, diameter, etc.

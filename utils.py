@@ -1,10 +1,11 @@
-from haversine import haversine, Unit
-from lxml import etree
+""" utils.py """
 from enum import Enum
 import math
+from haversine import haversine, Unit
 
 
 class TIMEUNIT(Enum):
+    """ TIMEUNIT TODO """
     SECOND = 1
     MINUTE = 60
     HOUR = 3600
@@ -24,7 +25,7 @@ def distance(orig, dest, dist_unit=Unit.METERS):
     Returns a float
             The distance (in dist_units) between the two coordinates
     """
-    if (orig == (0.0, 0.0)):
+    if orig == (0.0, 0.0):
         computed_distance = 0
     else:
         computed_distance = haversine(orig, dest, dist_unit)
@@ -56,7 +57,7 @@ def cadence(orig, dest, cog, chainring, tire_width, wheel_diameter, dist_unit=Un
     Returns
             The instantaneous cadence as an integer in revolutions per time_rate
     """
-    if (orig == (0.0, 0.0)):
+    if orig == (0.0, 0.0):
         computed_cadence = 0
     else:
         # coordinates are measured in 1 second intervals
@@ -88,7 +89,7 @@ def speed(orig, dest, dist_unit=Unit.METERS, time_rate=TIMEUNIT.HOUR):
     Returns
             The instantaneous speed as an integer
     """
-    if (orig == (0.0, 0.0)):
+    if orig == (0.0, 0.0):
         computed_speed = 0
     else:
         # coordinates are measured in 1 second intervals
@@ -100,19 +101,17 @@ def speed(orig, dest, dist_unit=Unit.METERS, time_rate=TIMEUNIT.HOUR):
     return int(computed_speed)
 
 
-"""
-applicableElements(tree)
-- returns necessary information about the tree
-	* trkpt: a string representing the tag of a `trkpt` element
-	* extensions: a string representing the tag of an `extensions` element
-								this is also used to determine the existence of `extensions` elements
-	* cadences: a set containing all of the string representations of cadences
-							this is necessary because some gpx files save many cadence instances on the same interval
-- TODO improve return object names
-"""
-
-
 def applicableElements(tree):
+    """
+        applicableElements(tree)
+        - returns necessary information about the tree
+            * trkpt: a string representing the tag of a `trkpt` element
+            * extensions: a string representing the tag of an `extensions` element
+                                        this is also used to determine the existence of `extensions` elements
+            * cadences: a set containing all of the string representations of cadences
+                                    this is necessary because some gpx files save many cadence instances on the same interval
+            - TODO improve return object names
+    """
     trkpt_count = 0
     trkpt = ''
     extensions = ''
@@ -120,13 +119,13 @@ def applicableElements(tree):
 
     for element in tree.iter():
         if trkpt_count != 2:
-            if ("trkpt" in element.tag):
+            if "trkpt" in element.tag:
                 trkpt = element.tag
                 trkpt_count += 1
-            if ("cadence" in element.tag):
+            if "cadence" in element.tag:
                 cadences.add(element.tag)
-            if ("extensions" in element.tag):
-                contains_extensions = True
+            if "extensions" in element.tag:
+                # contains_extensions = True
                 extensions = element.tag
         else:
             break

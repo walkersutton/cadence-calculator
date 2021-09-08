@@ -1,4 +1,4 @@
-from haversine import Unit
+""" bike.py """
 
 
 class Bike():
@@ -12,7 +12,8 @@ class Bike():
             self.wheel_diameter:	the diameter of this bike's wheels
 
     """
-    __init__(self, chainring, cog, tire_width, unit, wheel_diameter):
+
+    def __init__(self, chainring, cog, tire_width, unit, wheel_diameter):
         self.chainring = chainring
         self.cog = cog
         self.tire_width = tire_width
@@ -26,4 +27,3 @@ class Bike():
                 unit:
 
         """
-        pass

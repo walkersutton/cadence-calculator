@@ -1,3 +1,4 @@
+""" config.py """
 import os
 
 STRAVA_CLIENT_ID = os.environ.get('CADENCE_CALCULATOR_CLIENT_ID')

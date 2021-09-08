@@ -1,13 +1,10 @@
+"""activities.py"""
+import logging
+import requests
 import config
 from gpx import create_gpx
 from cadence import generate_cadence_data
 from auth import get_access_token
-import json
-import logging
-import requests
-import sys
-
-sys.path.append('..')
 
 # from main import generate_cadence
 
@@ -24,6 +21,10 @@ sys.path.append('..')
 
 
 class Activity:
+    """
+    class docstring TODO
+    """
+
     def __init__(self, activity_id, athlete_id):
         """ Returns this activity object
         Args:
@@ -59,7 +60,9 @@ class Activity:
         """ Returns a Stream object of this activity
 
         Returns a dict
-                Each key is specified in the 'params' 'keys' list - values are objects with relevant data (keys that are specified in 'params' that don't have existing data are not returned)
+                Each key is specified in the 'params' 'keys' list.
+                Values are objects with relevant data (keys that are specified
+                in 'params' that don't have existing data are not returned)
         """
         # might want to modify keys to include other things
         try:
@@ -67,9 +70,13 @@ class Activity:
             headers = {'Authorization': 'Bearer ' +
                        get_access_token(athlete_id)}
             params = {
-                'keys': 'time,latlng,distance,altitude,heartrate,cadence,watts,temp,moving', 'key_by_type': 'true'}
+                'keys': 'time,latlng,distance,altitude,heartrate,cadence,watts,temp,moving',
+                'key_by_type': 'true'
+            }
             # TODO
-            # list of chr strings with any combination of "time", "latlng", "distance", "altitude", "velocity_smooth", "heartrate", "cadence", "watts", "temp", "moving", or "grade_smooth"
+            # list of chr strings with any combination of "time", "latlng", "distance",
+            # "altitude", "velocity_smooth", "heartrate", "cadence", "watts", "temp",
+            # "moving", or "grade_smooth"
             # https://rdrr.io/github/fawda123/rStrava/man/get_streams.html
             url = f'{config.API_ENDPOINT}/activities/{activity_id}/streams'
             response = requests.get(headers=headers, params=params, url=url)
@@ -81,6 +88,7 @@ class Activity:
         except Exception as e:
             logging.error('error accessing activity stream:')
             logging.error(e)
+        return None
 
     def generate_stream(self):
         """ Create a new stream with cadence data appended to the stream
@@ -100,9 +108,11 @@ class Activity:
         except Exception as e:
             logging.error('error generating stream:')
             logging.error(e)
+        return None
 
     def valid_description(self):
-        """ Sets the gear ratio if this description is properly formatted and determines whether or not the description is valid.
+        """ Sets the gear ratio if this description is properly formatted and
+            determines whether or not the description is valid.
                 TODO
         Returns a bool
                 Returns True if the description is valid, otherwise returns False
@@ -119,21 +129,23 @@ class Activity:
         except Exception as e:
             logging.error('error parsing gear ratio:')
             logging.error(e)
-            return None
 
     # TODO - change method name
-    # maybe something like 'view' or 'observe' - because we won't ALWAYS be modifyign the activity - it depends on the state
+    # maybe something like 'view' or 'observe' - because we won't ALWAYS be modifyign the
+    # activity - it depends on the state
     def requires_cadence_data(self):
         """ Determines if this activity needs cadence data generated
 
         Returns a bool
         """
         try:
-            return self.obj['type'] == 'Ride' and 'average_cadence' in self.obj and self.valid_description()
+            return (self.obj['type'] == 'Ride' and 'average_cadence' in self.obj
+                    and self.valid_description())
         except Exception as e:
             logging.error(
                 'error determining if this activity requires cadence data generated:')
             logging.error(e)
+        return None
 
     # url = f'{config.API_ENDPOINT}/routes/{activity_id}/export_gpx'
     # headers = {'Authorization': 'Bearer ' + get_access_token(owner_id)}
@@ -141,7 +153,8 @@ class Activity:
     # response = requests.get(url=url, headers=headers)
     # TODO convert to Streams API
     # TODO
-    # should have a GPX file in the response? I wonder how that will look.... - hopefully a url to the file itself
+    # should have a GPX file in the response? I wonder how that will look.... -
+    # hopefully a url to the file itself
     # return response.json()
     # else:
     # TODO
@@ -153,12 +166,13 @@ class Activity:
         # print(stream)
 
     def replace_activity(self):
-        """ Uploads a new activity to Strava with identical data as this activity, but with the addition of cadence data
+        """ Uploads a new activity to Strava with identical data as this activity,
+            but with the addition of cadence data
                 TODO
                 Returns TODO
         """
         try:
-            stream = self.get_stream()
+            # stream = self.get_stream()
 
             # TODO might want tire width, and other props
             # probably want the start_date/start_date_local & timezone? -- use with stream
@@ -174,14 +188,16 @@ class Activity:
                 'description': self.obj['description'],
                 'trainer': 1 if self.obj['trainer'] else 0,
                 'commute': 1 if self.obj['commute'] else 0,
-                # we might want to use FIT instead since we can preserve more data across replacing (lap & session data +), but lower priority
+                # we might want to use FIT instead since we can preserve more data across replacing
+                #  (lap & session data +), but lower priority
                 'data_type': create_gpx(self.generate_stream())
                 # 'external_id': '', # investigate TODO
                 # 'file': # investigate - TODO - multipart/form-datat data type???
             }
             url = f'{config.API_ENDPOINT}/uploads'
             response = requests.post(headers=headers, params=params, url=url)
-            # do we also want to be responsible for replacing images and other properties that were lost across deleting?
+            # do we also want to be responsible for replacing images and other properties that
+            #  were lost across deleting?
             if response.ok:
                 self.obj = response.json()
             else:

@@ -1,7 +1,10 @@
+""" subscriptions.py """
 import json
 import logging
-import requests
 import sys
+
+import requests
+
 
 from activities import Activity
 import config
@@ -14,14 +17,14 @@ def get_existing_subscriptions():
     """ Returns a list of subscriptions
     (this list should never have more than 1 item)
     [
-            {
-                    "id": 12345,
-                    "resource_state": 1, 
-                    "application_id": 12345, 
-                    "callback_url": "https://url.org/callback", 
-                    "created_at": "1970-01-01T20:20:20Z", 
-                    "updated_at": "2000-01-01T20:20:20Z"
-            }
+                    {
+                                    "id": 12345,
+                                    "resource_state": 1,
+                                    "application_id": 12345,
+                                    "callback_url": "https://url.org/callback",
+                                    "created_at": "1970-01-01T20:20:20Z",
+                                    "updated_at": "2000-01-01T20:20:20Z"
+                    }
     ]
     """
     try:
@@ -35,10 +38,10 @@ def get_existing_subscriptions():
             return response.json()
         else:
             logging.error(response.text)
-            sys.exit(1)
     except Exception as e:
         logging.error('error getting existing subscriptions:')
         logging.error(e)
+    return None
 
 
 def get_subscription_id():
@@ -64,13 +67,14 @@ def get_subscription_id():
     except Exception as e:
         logging.error('error getting subscription id:')
         logging.error(e)
+    return None
 
 
 def delete_subscription(subscription_id):
     """ Deletes the subscription with the given subscription_id
 
     Args:
-            subscription_id: TODO
+                    subscription_id: TODO
     """
     try:
         url = f'{config.API_ENDPOINT}/push_subscriptions/' + \
@@ -89,6 +93,7 @@ def delete_subscription(subscription_id):
     except Exception as e:
         logging.error('error deleting subscription:')
         logging.error(e)
+    return None
 
 
 def handle_event(event):
@@ -104,7 +109,7 @@ def handle_event(event):
         aspect_type = event['aspect_type']
         owner_id = event['owner_id']
         # TODO: determine if we need a new token for user - not sure if this is relevant
-        if object_type == 'activity' and (aspect_type == 'create' or aspect_type == 'update'):
+        if object_type == 'activity' and aspect_type in ('create', 'update'):
             activity = Activity(object_id, owner_id)
             if activity.requires_cadence_data():
                 # we either want to prompt user that kudos and comments will be deleted, or do somethign else
