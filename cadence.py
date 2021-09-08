@@ -1,7 +1,7 @@
 """ cadence.py """
 import logging
-from collections import deque
-from statistics import mean
+# from collections import deque
+# from statistics import mean
 import math
 
 # from utils import applicableElements, distance

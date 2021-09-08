@@ -166,7 +166,7 @@ def token_exchange(code):
             expires_at = obj['expires_at']
             refresh_token = obj['refresh_token']
             access_token = obj['access_token']
-            token_type = obj['token_type']  # TODO
+            # token_type = obj['token_type']  # TODO
             try:
                 supabase = create_db_conn()
                 insert_access_token(supabase, athlete_id,

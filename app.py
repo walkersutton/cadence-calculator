@@ -4,7 +4,8 @@ from flask import Flask, make_response, render_template, request
 # import logging
 
 from auth import auth_url, token_exchange
-from subscriptions import get_subscription_id, delete_subscription, handle_event
+from subscriptions import handle_event
+# get_subscription_id, delete_subscription
 
 app = Flask(__name__)
 

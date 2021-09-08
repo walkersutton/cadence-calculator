@@ -1,7 +1,7 @@
 """ bike.py """
 
 
-class Bike():
+class Bike:
     """ Represents a bike
 
     Args:
@@ -13,11 +13,12 @@ class Bike():
 
     """
 
-    def __init__(self, chainring, cog, tire_width, unit, wheel_diameter):
+    def __init__(self, chainring, cog, tire_width, wheel_diameter):
+        """ constructor """
         self.chainring = chainring
         self.cog = cog
         self.tire_width = tire_width
-        self.unit = unit
+        # self.unit = unit
         self.wheel_diameter = wheel_diameter
 
     def distance_per_revolution(self, unit):
@@ -27,3 +28,7 @@ class Bike():
                 unit:
 
         """
+
+    def method_b(self):
+        """ meslkdjf"""
+        return self.chainring * self.cog
