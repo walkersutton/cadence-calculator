@@ -1,9 +1,10 @@
 .DS_Store
-/__pycache__
+*__pycache__*
 /.vscode
 /venv
 test_file.gpx
-
+*.xml*
+*.gpx*
 *with_cadence.gpx
 *without_cadence.gpx
 

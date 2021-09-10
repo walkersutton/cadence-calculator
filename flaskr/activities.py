@@ -167,17 +167,15 @@ class Activity:
 
     def replace_activity(self):
         """ Uploads a new activity to Strava with identical data as this activity,
-            but with the addition of cadence data
+            but with the addition of cadence data. This function is only called when cadence data doesn't already exist
                 TODO
                 Returns TODO
         """
         try:
-            # stream = self.get_stream()
-
             # TODO might want tire width, and other props
             # probably want the start_date/start_date_local & timezone? -- use with stream
             # eventually, will want to check gear to see if this bike already has a recorded ratio?
-            # stream = generate_cadence()
+            
 
             headers = {'Authorization': 'Bearer ' +
                        get_access_token(self.obj['athelte']['id'])}
