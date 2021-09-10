@@ -104,10 +104,10 @@ def insert_access_token(supabase, athlete_id, access_token, expires_at):
 def insert_refresh_token(supabase, athlete_id, refresh_token):
     """ Inserts a new record into Supabase refresh_token table """
     try:
-        insert_query = f"INSERT INTO refresh_token VALUES ({athlete_id}, '{refresh_token}');"
         insert_query = {
             'athlete_id': athlete_id,
-            'refresh_token_code': refresh_token
+            'refresh_token_code': refresh_token,
+            'created_at': round(time.time())
         }
         supabase.table('refresh_token').insert(insert_query).execute()
     except Exception as e:
@@ -185,6 +185,20 @@ def token_exchange(code):
         logging.error('error exchanging token:')
         logging.error(e)
 
+def get_latest_refresh_token(supabase, athlete_id):
+    """
+    Finds the youngest refresh token for this user
+    returns: the refresh token (String)
+    """
+    # TODO - this method will no longer be needed once UPDATEs are functional
+    data = supabase.table('refresh_token').select('*').execute()['data']
+    created_at = 0
+    refresh_token = ''
+    for record in data:
+        if record['athlete_id'] == athlete_id and record['created_at'] > created_at:
+            created_at, refresh_token = record['created_at'], record['refresh_token_code']
+    return refresh_token
+
 
 def request_new_access_token(supabase, athlete_id):
     """
@@ -197,11 +211,7 @@ def request_new_access_token(supabase, athlete_id):
         # TODO: once functionality is added for completing more advanced queries, rewrite this
         # refresh_token_query = f'SELECT refresh_token FROM refresh_token WHERE athlete_id={athlete_id};'
         data = supabase.table('refresh_token').select('*').execute()['data']
-        refresh_token = None
-        for record in data:
-            if int(record['athlete_id']) == athlete_id:
-                refresh_token = record['refresh_token_code']
-                break
+        refresh_token = get_latest_refresh_token(supabase, athlete_id)
         data = {
             'client_id': config.STRAVA_CLIENT_ID,
             'client_secret': config.STRAVA_CLIENT_SECRET,
@@ -219,7 +229,9 @@ def request_new_access_token(supabase, athlete_id):
                 supabase = create_db_conn()
                 update_access_token(supabase, athlete_id,
                                     access_token, expires_at)
-                update_refresh_token(supabase, athlete_id, refresh_token)
+                if refresh_token != get_latest_refresh_token(supabase, athlete_id):
+                    update_refresh_token(supabase, athlete_id, refresh_token)
+                    logging.info('successfully refreshed refresh token')
                 logging.info('successfully refreshed access token')
                 return access_token
             except Exception as e:
