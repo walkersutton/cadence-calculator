@@ -14,12 +14,20 @@ def create_gpx(stream: dict, activity: dict) -> str:
             Returns a filename to the newly created gpx file
             TODO tar compress before creating post request
     """
+    activity = {
+        'start_time': '2021-09-14T10:28:25Z',
+        'device_name': 'wahooo',
+        'name': 'mornnning ride'
+    }
     datetime_fmt = '%Y-%m-%dT%H:%M:%SZ'
     start_datetime = activity['start_time']
+    XSI = 'http://www.w3.org/2001/XMLSchema-instance'
+    GPXTPX = 'http://www.garmin.com/xmlschemas/TrackPointExtension/v1'
+    GPXX = 'http://www.garmin.com/xmlschemas/GpxExtensions/v3'
     NSMAP = {
-        'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-        'gpxtpx': 'http://www.garmin.com/xmlschemas/TrackPointExtension/v1',
-        'gpxx': 'http://www.garmin.com/xmlschemas/GpxExtensions/v3'
+        'xsi': XSI,
+        'gpxtpx': GPXTPX,
+        'gpxx': GPXX
     }
     schema_location = ''
     schema = ['http://www.topografix.com/GPX/1/1 ', 'http://www.topografix.com/GPX/1/1/gpx.xsd ',
@@ -49,6 +57,7 @@ def create_gpx(stream: dict, activity: dict) -> str:
     type = etree.SubElement(trk, 'type')
     type.text = '1'
     # TODO investigate this
+    # I thinkkkkk 1==bikeActivity, but I could be wrong
 
     trkseg = etree.SubElement(trk, 'trkseg')
 
@@ -59,19 +68,19 @@ def create_gpx(stream: dict, activity: dict) -> str:
 
         if 'altitude' in stream:
             ele = etree.SubElement(trkpt, 'ele')
-            ele.text = str(stream['a`ltitude']['data'][ii])
+            ele.text = str(stream['altitude']['data'][ii])
 
         time = etree.SubElement(trkpt, 'time')
         time.text = (start_datetime + timedelta(seconds=int(stream['time']['data'][ii]))).strftime('%Y-%m-%dT%H:%M:%SZ')
 
         extensions = etree.SubElement(trkpt, 'extensions')
         # invalid tag name with the colon below - use a xmlns or something
-        trackpoint_extension = etree.SubElement(extensions, 'TrackPointExtension')
+        trackpoint_extension = etree.SubElement(extensions, '{%s}TrackPointExtension' % (GPXTPX))
         # extension_types = ['heartrate', 'cadence', 'latlng', 'distance', ]
         # TODO
         # maybe make a for loop here? depending on where the elements go - i imagine they don't all belong to TrackpointExtension
         if 'heartrate' in stream:
-            heartrate = etree.SubElement(trackpoint_extension, 'hr')
+            heartrate = etree.SubElement(trackpoint_extension, '{%s}hr' % (GPXTPX))
             heartrate.text = str(stream['heartrate']['data'][ii])
         # if 'cadence' in stream:
         #     cadence = etree.SubElement(trackpoint_extension, 'cadence')
