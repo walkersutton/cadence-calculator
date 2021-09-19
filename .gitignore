@@ -7,7 +7,7 @@ test_file.gpx
 *.gpx*
 *with_cadence.gpx
 *without_cadence.gpx
-flaskr/gpx_test_Files
+flaskr/gpx_test_Files/sort_gpx/
 
 terry*
 
