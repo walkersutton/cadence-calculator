@@ -1,116 +1,102 @@
 """ gpx.py """
+from datetime import datetime, timedelta
 import json
 from lxml import etree
 
-def generateCadenceElement(cadence):
-    """ Generates a new Element cadence object with the given cadence as its value
-
-    Args:
-                    cadence::[str]
-                                    The cadence value in RPM to be assigned to the generated object
-
-    Returns
-                    cadence_element::lxml.etree._Element
-                                    A new cadence Element with the specified cadence value
-
-    """
-    #     cadence_element = etree.Element("cadence")
-    #     cadence_element.text = cadence
-    #     return cadence_element
-    return cadence
-
-
-def create_gpx(stream):
+def create_gpx(stream, activity):
     """ Creates a GPX file with this stream's data
 
             Args:
-                            stream (obj)
+                stream (obj)
 
             TODO
 
             Returns a filename to the newly created gpx file
             TODO tar compress before creating post request
     """
-    f = open("st.json")
+    datetime_fmt = '%Y-%m-%dT%H:%M:%SZ'
+    start_datetime = activity['start_time']
+    NSMAP = {
+        'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+        'gpxtpx': 'http://www.garmin.com/xmlschemas/TrackPointExtension/v1',
+        'gpxx': 'http://www.garmin.com/xmlschemas/GpxExtensions/v3'
+    }
+    schema_location = ''
+    schema = ['http://www.topografix.com/GPX/1/1 ', 'http://www.topografix.com/GPX/1/1/gpx.xsd ',
+    'http://www.garmin.com/xmlschemas/GpxExtensions/v3 ', 'http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd ',
+    'http://www.garmin.com/xmlschemas/TrackPointExtension/v1 ', 'http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd']
+    for s in schema:
+        schema_location += s
+
+    f = open('st.json')
     stream = json.load(f)
 
-    gpx = etree.Element('gpx', creator='cadecalc.app', xmlns='TODO', version='1.1')
+    gpx = etree.Element('gpx', creator=activity['device_name'], xmlns='http://www.topografix.com/GPX/1/1', version='1.1', nsmap=NSMAP)
+    gpx.set('{http://www.w3.org/2001/XMLSchema-instance}schemaLocation', schema_location)
+
     doc = etree.ElementTree(gpx)
+
     metadata = etree.SubElement(gpx, 'metadata')
+
     time = etree.SubElement(metadata, 'time')
-    time.text = '2021-07-04T21:22:57Z'
+    time.text = start_datetime
+
     trk = etree.SubElement(gpx, 'trk')
+
     name = etree.SubElement(trk, 'name')
-    name.text = 'NBD: first ride on the Canyon!'
+    name.text = activity['name']
+
     type = etree.SubElement(trk, 'type')
     type.text = '1'
+    # TODO investigate this
+
     trkseg = etree.SubElement(trk, 'trkseg')
+
+    start_datetime = datetime.strptime(start_datetime, datetime_fmt)
     for ii in range(stream['latlng']['original_size']):
-        lat, lon = str(stream['latlng']['data'][ii][0]), str(stream['latlng']['data'][ii][1])
-        ele = str(stream['altitude']['data'][ii])
-        time = str(stream['time']['data'][ii])
-        # cadence = str(stream['cadence']['data'][ii])
-        trkpt = etree.SubElement(trkseg, 'trkpt', lat=lat, lon=lon)
-        ele_ele = etree.SubElement(trkpt, 'ele')
-        ele_ele.text = ele
-        # TODO Fix time
-        time_ele = etree.SubElement(trkpt, 'time')
-        # time.text = '2021-07-04T21:22:57Z'
-        time_ele.text = time
+        # we are assuminmg that all streams will have latlng based on the range parameter
+        trkpt = etree.SubElement(trkseg, 'trkpt', lat=str(stream['latlng']['data'][ii][0]), lon=str(stream['latlng']['data'][ii][1]))
+
+        if 'altitude' in stream:
+            ele = etree.SubElement(trkpt, 'ele')
+            ele.text = str(stream['a`ltitude']['data'][ii])
+
+        time = etree.SubElement(trkpt, 'time')
+        time.text = (start_datetime + timedelta(seconds=int(stream['time']['data'][ii]))).strftime('%Y-%m-%dT%H:%M:%SZ')
+
         extensions = etree.SubElement(trkpt, 'extensions')
-        # invalid tag name with the colon below - use a xmlns or something 
-        trackpoint_extension = etree.SubElement(extensions, 'gpxtpxTrackPointExtension')
-        heartrate = etree.SubElement(trackpoint_extension, 'gpxtpxhr')
-        heartrate.text = '99'
-    
-    # trk = etree.SubElement(gpx, 'trk', nsmap={'xmlns': 'hello'})
-    # trk = etree.SubElement(gpx, 'Country', 
-    #                                     name='Germany',
-    #                                     Code='DE',
-    #                                     Storage='Basic')
-    doc.write('output5.xml', xml_declaration=True, encoding='UTF-8') 
+        # invalid tag name with the colon below - use a xmlns or something
+        trackpoint_extension = etree.SubElement(extensions, 'TrackPointExtension')
+        # extension_types = ['heartrate', 'cadence', 'latlng', 'distance', ]
+        # TODO
+        # maybe make a for loop here? depending on where the elements go - i imagine they don't all belong to TrackpointExtension
+        if 'heartrate' in stream:
+            heartrate = etree.SubElement(trackpoint_extension, 'hr')
+            heartrate.text = str(stream['heartrate']['data'][ii])
+        # if 'cadence' in stream:
+        #     cadence = etree.SubElement(trackpoint_extension, 'cadence')
+        #     cadence.text = str(stream['cadence']['data'][ii])
+        # if 'watts' in stream:
+        #     watts = etree.SubElement(trackpoint_extension, 'watts')
+        #     watts.text = str(stream['watts']['data'][ii])
+        # if 'temp' in stream:
+        #     temp = etree.SubElement(trackpoint_extension, 'temp')
+        #     temp.text = str(stream['temp']['data'][ii])
+        # if 'moving' in stream:
+        #     moving = etree.SubElement(trackpoint_extension, 'moving')
+        #     moving.text = str(stream['moving']['data'][ii])
+        # if 'velocity_smooth' in stream:
+        #     velocity_smooth = etree.SubElement(trackpoint_extension, 'velocity_smooth')
+        #     velocity_smooth.text = str(stream['velocity_smooth']['data'][ii])
+        # if 'grade_smooth' in stream:
+        #     grade_smooth = etree.SubElement(trackpoint_extension, 'grade_smooth')
+        #     grade_smooth.text = str(stream['grade_smooth']['data'][ii])
+            # OTHER STREAM
+            # distance - don't need(?)
+            # DistanceStream	An instance of DistanceStream.
+    doc.write('output6.xml', xml_declaration=True, encoding='UTF-8', pretty_print=True)
 
-    # NSMAP = {
-    # 'gpxx': 'http://www.garmin.com/xmlschemas/GpxExtensions/v3',
-    # None: 'http://www.topografix.com/GPX/1/1',
-    # 'gpxtpx': 'http://www.garmin.com/xmlschemas/TrackPointExtension/v1',
-    # 'xsi': 'http://www.w3.org/2001/XMLSchema-instance'
-    # }
-
-
-    # schemaLocation = "http://www.topografix.com/GPX/1/1"
-    # schemaLocation += "http://www.topografix.com/GPX/1/1/gpx.xsd"
-    # schemaLocation += "http://www.garmin.com/xmlschemas/GpxExtensions/v3"
-    # schemaLocation += "http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd"
-    # schemaLocation += "http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
-    # schemaLocation += "http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd"
-    # schemaLocation += "http://www.garmin.com/xmlschemas/GpxExtensions/v3"
-    # schemaLocation += "http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd"
-    # schemaLocation += "http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
-    # schemaLocation += "http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd"
-    # f = open("test.gpx", "w")
-    # gpx = etree.Element('gpx', nsmap=NSMAP)
-    # gpx.set('creator', 'Cadence Calculator')
-    # gpx.set('version', '1.1')
-    # gpx.set("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation",
-    #     schemaLocation)
-    # et = etree.ElementTree(gpx)
-    # et = tostring(et, 'unicode')
-    # et.write(f)
-    # f.close()
-
-    # gpx = gpxpy.gpx.GPX()
-    # gpx_track = gpxpy.gpx.GPXTrack()
-    # gpx.tracks.append(gpx_track)
-    # gpx_segment = gpxpy.gpx.GPXTrackSegment()
-    # gpx_track.segments.append(gpx_segment)
-    # for ii in range(3):f
-    #     gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(ii, 5, elevation=12))
-    # with open("output.gpx", "w") as f:
-        # f.write( gpx.to_xml())
-
-    
-    return stream
+    return 'output6.xml'
 
 
 # NOTES
