@@ -18,24 +18,23 @@ Should you have any problems while installing or using the tool, please open up 
 ```
 .
 ├── Procfile                # Heroku deployment requirement
-├── README.md
 ├── config.py               # environment variables
-├── flaskr
+├── flaskr                  #
 │   ├── __init__.py         # core Flask module
-│   ├── activities.py		# 
+│   ├── activities.py       #
 │   ├── auth.py             # authentication magic
-│   ├── bike.py				# 
-│   ├── cadence.py			# 
-│   ├── gpx.py				#
+│   ├── bike.py             #
+│   ├── cadence.py          #
+│   ├── gpx.py              #
 │   ├── subscriptions.py    # subscription management
 │   ├── tester.py           # used to verify accuracy of computed cadence values
-│   ├── utils.py
-│   ├── static              #     
+│   ├── utils.py            #
+│   ├── static              #
 │   ├── templates           # HTML templates for rendering webpages
-│   └── tests				#  
-├── lint.sh					#
+│   └── tests               #
+├── lint.sh                 #
 ├── requirements.txt        # python dependencies
-└── setup.py				#
+└── setup.py                #
 ```
 
 ### Requirement
