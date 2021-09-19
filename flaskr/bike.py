@@ -14,7 +14,7 @@ class Bike:
 
     """
 
-    def __init__(self, chainring, cog, tire_width, wheel_diameter):
+    def __init__(self, chainring: int, cog: int, tire_width: int, wheel_diameter: int) -> None:
         """ constructor """
         self.chainring = chainring
         self.cog = cog

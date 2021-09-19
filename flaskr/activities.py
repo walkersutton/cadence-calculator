@@ -1,4 +1,4 @@
-"""activities.py"""
+""" activities.py """
 import logging
 import requests
 import config
@@ -25,18 +25,18 @@ class Activity:
     class docstring TODO
     """
 
-    def __init__(self, activity_id, athlete_id):
+    def __init__(self, activity_id: int, athlete_id: int) -> None:
         """ Returns this activity object
         Args:
-                activity_id: (int)
-                        The id of the activity
-                athlete_id: (int)
-                        The id of the athlete
+            activity_id: (int)
+                The id of the activity
+            athlete_id: (int)
+                The id of the athlete
 
         Cretes an Activity
-                TODO
-                See Strava Developer resources for Activity Object
-                https://developers.strava.com/docs/reference/#api-Activities
+            TODO
+            See Strava Developer resources for Activity Object
+            https://developers.strava.com/docs/reference/#api-Activities
         """
         self.obj = {}
         self.chainring = -1
@@ -56,13 +56,13 @@ class Activity:
             logging.error('error accessing activity:')
             logging.error(e)
 
-    def get_stream(self):
+    def get_stream(self) -> dict:
         """ Returns a Stream object of this activity
 
         Returns a dict
-                Each key is specified in the 'params' 'keys' list.
-                Values are objects with relevant data (keys that are specified
-                in 'params' that don't have existing data are not returned)
+            Each key is specified in the 'params' 'keys' list.
+            Values are objects with relevant data (keys that are specified
+            in 'params' that don't have existing data are not returned)
         """
         # might want to modify keys to include other things
         try:
@@ -90,7 +90,7 @@ class Activity:
             logging.error(e)
         return None
 
-    def generate_stream(self):
+    def generate_stream(self) -> dict:
         """ Create a new stream with cadence data appended to the stream
                 TODO
                 Returns a stream with a cadence property
@@ -115,10 +115,10 @@ class Activity:
             determines whether or not the description is valid.
                 TODO
         Returns a bool
-                Returns True if the description is valid, otherwise returns False
-                Format guidelines are posted on help page
-                TODO add description format guidelins
-                TODO TODO TODO
+            Returns True if the description is valid, otherwise returns False
+            Format guidelines are posted on help page
+            TODO add description format guidelins
+            TODO TODO TODO
         """
         try:
             description = self.obj['description']
@@ -126,14 +126,16 @@ class Activity:
             ratio = description[0].split('x')
             self.chainring = int(ratio[0])
             self.cog = int(ratio[1])
+            return True
         except Exception as e:
             logging.error('error parsing gear ratio:')
             logging.error(e)
+        return False
 
     # TODO - change method name
     # maybe something like 'view' or 'observe' - because we won't ALWAYS be modifyign the
     # activity - it depends on the state
-    def requires_cadence_data(self):
+    def requires_cadence_data(self) -> bool:
         """ Determines if this activity needs cadence data generated
 
         Returns a bool
@@ -165,7 +167,7 @@ class Activity:
     # this returns either a 200 with the gpx file
         # print(stream)
 
-    def replace_activity(self):
+    def replace_activity(self) -> bool:
         """ Uploads a new activity to Strava with identical data as this activity,
             but with the addition of cadence data. This function is only called when cadence data doesn't already exist
                 TODO
@@ -175,7 +177,7 @@ class Activity:
             # TODO might want tire width, and other props
             # probably want the start_date/start_date_local & timezone? -- use with stream
             # eventually, will want to check gear to see if this bike already has a recorded ratio?
-            
+
 
             headers = {'Authorization': 'Bearer ' +
                        get_access_token(self.obj['athelte']['id'])}
@@ -188,7 +190,7 @@ class Activity:
                 'commute': 1 if self.obj['commute'] else 0,
                 # we might want to use FIT instead since we can preserve more data across replacing
                 #  (lap & session data +), but lower priority
-                'data_type': create_gpx(self.generate_stream())
+                'data_type': create_gpx(self.generate_stream(), self.obj)
                 # 'external_id': '', # investigate TODO
                 # 'file': # investigate - TODO - multipart/form-datat data type???
             }
@@ -200,6 +202,7 @@ class Activity:
                 self.obj = response.json()
             else:
                 pass
+                # TODO
         except Exception as e:
             logging.error('error replacing activity:')
             logging.error(e)

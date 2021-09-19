@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import json
 from lxml import etree
 
-def create_gpx(stream, activity):
+def create_gpx(stream: dict, activity: dict) -> str:
     """ Creates a GPX file with this stream's data
 
             Args:

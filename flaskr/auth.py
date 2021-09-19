@@ -11,7 +11,7 @@ import config
 # should we create a class with a Supabase Client as a property?
 
 
-def auth_url():
+def auth_url() -> None:
     """ returns: Strava OAuth URL
     """
     try:
@@ -25,7 +25,7 @@ def auth_url():
         return None
 
 
-def create_db_conn():
+def create_db_conn() -> Client:
     """
     Creates a connection to Supabase
     returns: supabase Client object
@@ -74,19 +74,19 @@ def create_db_conn():
 #         logging.error(e)
 
 
-def commit_query(conn, query):
-    """ TODO deprecate? """
-    try:
-        cursor = conn.cursor()
-        cursor.execute(query)
-        conn.commit()
-    except Exception as e:
-        logging.error('error comitting query:')
-        logging.error(query)
-        logging.error(e)
+# def commit_query(conn, query):
+#     """ TODO deprecate? """
+#     try:
+#         cursor = conn.cursor()
+#         cursor.execute(query)
+#         conn.commit()
+#     except Exception as e:
+#         logging.error('error comitting query:')
+#         logging.error(query)
+#         logging.error(e)
 
 
-def insert_access_token(supabase, athlete_id, access_token, expires_at):
+def insert_access_token(supabase: Client, athlete_id: int, access_token: str, expires_at: int) -> None:
     """ Inserts a new record into Supabase access_token table """
     try:
         insert_query = {
@@ -101,7 +101,7 @@ def insert_access_token(supabase, athlete_id, access_token, expires_at):
         logging.error(e)
 
 
-def insert_refresh_token(supabase, athlete_id, refresh_token):
+def insert_refresh_token(supabase: Client, athlete_id: int, refresh_token: str) -> None:
     """ Inserts a new record into Supabase refresh_token table """
     try:
         insert_query = {
@@ -116,7 +116,7 @@ def insert_refresh_token(supabase, athlete_id, refresh_token):
         logging.error(e)
 
 
-def update_access_token(supabase, athlete_id, access_token, expires_at):
+def update_access_token(supabase: Client, athlete_id: int, access_token: str, expires_at: int) -> None:
     """ Inserts a new record into Supabase access_token table """
     # TODO: update once functionality changes
     try:
@@ -131,7 +131,7 @@ def update_access_token(supabase, athlete_id, access_token, expires_at):
         logging.error(e)
 
 
-def update_refresh_token(supabase, athlete_id, refresh_token):
+def update_refresh_token(supabase: Client, athlete_id: int, refresh_token: str) -> None:
     """ Inserts a new record into Supabase refresh_token table """
     # TODO: update once functionality changes
     try:
@@ -145,7 +145,7 @@ def update_refresh_token(supabase, athlete_id, refresh_token):
         logging.error(e)
 
 
-def token_exchange(code):
+def token_exchange(code: str) -> None:
     """
     code:	a string provided by Strava used to authenticate this user
 
@@ -185,7 +185,7 @@ def token_exchange(code):
         logging.error('error exchanging token:')
         logging.error(e)
 
-def get_latest_refresh_token(supabase, athlete_id):
+def get_latest_refresh_token(supabase: Client, athlete_id: int) -> str:
     """
     Finds the youngest refresh token for this user
     returns: the refresh token (String)
@@ -200,7 +200,7 @@ def get_latest_refresh_token(supabase, athlete_id):
     return refresh_token
 
 
-def request_new_access_token(supabase, athlete_id):
+def request_new_access_token(supabase: Client, athlete_id: int) -> str:
     """
         Requests a new access token
         (access tokens are short lived with a 6 hour life)
@@ -247,7 +247,7 @@ def request_new_access_token(supabase, athlete_id):
     return None
 
 
-def get_latest_access_token(supabase, athlete_id):
+def get_latest_access_token(supabase: Client, athlete_id: int) -> tuple[int, str]:
     """
     Finds the youngest access token for this user
     returns: the access token (String), and the expiration time(Integer)
@@ -263,7 +263,7 @@ def get_latest_access_token(supabase, athlete_id):
     return expires_at, access_token
 
 
-def get_access_token(athlete_id):
+def get_access_token(athlete_id: int) -> str:
     """
     returns:	the existing short-lived access token if it isn't dead.
                 Otherwise gets a new access token and updates db appropriately

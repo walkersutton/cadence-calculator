@@ -10,22 +10,22 @@ import math
 DEBUG = True
 
 
-def generate_cadence(distance_travelled, chainring, cog, wheel_diameter=622, tire_width=25):
+def generate_cadence(distance_travelled: float, chainring: int, cog: int, wheel_diameter: int = 622, tire_width: int = 25) -> float:
     """ Generates an integer value for the instantaneous cadence
 
     Args:
-            distance_travelled: float
-                    The distance travelled in M/s
-            chainring: int
-                    The chainring size
-            cog: int
-                    The cog size
-            wheel_diameter: int
-                    The wheel diameter in mm
-            tire_width: int
-                    The tire width in mm
+		distance_travelled: float
+			The distance travelled in M/s
+		chainring: int
+			The chainring size
+		cog: int
+			The cog size
+		wheel_diameter: int
+			The wheel diameter in mm
+		tire_width: int
+			The tire width in mm
     Returns
-            The instantaneous cadence as an integer in revolutions per time_rate
+		The instantaneous cadence as an integer in revolutions per time_rate
     """
     try:
         return distance_travelled * 60 / (math.pi * (wheel_diameter + (2 * tire_width)) / 1000 * (chainring / cog))
@@ -36,17 +36,17 @@ def generate_cadence(distance_travelled, chainring, cog, wheel_diameter=622, tir
 
 
 # might want tire_width, diameter, etc.
-def generate_cadence_data(distances, chainring, cog, wheel_diameter, tire_width):
+def generate_cadence_data(distances: list, chainring: int, cog: int, wheel_diameter: int, tire_width: int) -> list:
     """ Generates a list of cadence values based on input
-            Args:
-                    distances:
-                            TODO
-                    chainring:
-                            TODO
-                    cog:
-                            TODO
-            Returns a list of int
-                    representing instantaneous cadence values in rotations per minute
+        Args:
+			distances:
+				TODO
+			chainring:
+				TODO
+			cog:
+				TODO
+        Returns a list of int
+			representing instantaneous cadence values in rotations per minute
     """
     cadences = []
     last_distance_travelled = 0

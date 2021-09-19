@@ -8,7 +8,7 @@ from flaskr.subscriptions import handle_event
 # get_subscription_id, delete_subscription
 
 
-def create_app():
+def create_app() -> Flask:
     """ TODO """
     app = Flask(__name__)
     # # Threaded option to enable multiple instances for multiple user access support

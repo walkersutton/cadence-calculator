@@ -13,7 +13,7 @@ import config
 # https://developers.strava.com/docs/rate-limits/
 
 
-def get_existing_subscriptions():
+def get_existing_subscriptions() -> dict:
     """ Returns a list of subscriptions
     (this list should never have more than 1 item)
     [
@@ -44,7 +44,7 @@ def get_existing_subscriptions():
     return None
 
 
-def get_subscription_id():
+def get_subscription_id() -> int:
     """ Returns the ID of an available subscription (new ID or existing ID) """
     try:
         callback_url = config.SERVER_DOMAIN + '/subscribe'
@@ -68,7 +68,7 @@ def get_subscription_id():
     return None
 
 
-def delete_subscription(subscription_id):
+def delete_subscription(subscription_id: int) -> str:
     """ Deletes the subscription with the given subscription_id
 
     Args:
@@ -95,7 +95,7 @@ def delete_subscription(subscription_id):
     return None
 
 
-def handle_event(event):
+def handle_event(event: str) -> str:
     """ Handles users' activity & profile updates and acts accordingly
 
     Returns json TODO
