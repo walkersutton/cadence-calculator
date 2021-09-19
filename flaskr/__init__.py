@@ -1,6 +1,6 @@
 import json
 
-# import logging
+import logging
 from flask import Flask, make_response, render_template, request
 
 from flaskr.auth import auth_url, token_exchange
@@ -11,6 +11,17 @@ from flaskr.subscriptions import handle_event
 def create_app():
     """ TODO """
     app = Flask(__name__)
+    # # Threaded option to enable multiple instances for multiple user access support
+    # # auth.update_security_group()
+    # # app.logger.info('attempting to create subscription')
+    # # subscription_id = create_subscription()
+    # # app.logger.info('created subscription with id: ' + str(subscription_id))
+    # app.logger.info('starting app')
+    # app.run(threaded=True, port=5000)
+    # app.logger.info('app exited')
+    # # app.logger.info('attempting to delete subscription')
+    # # delete_subscription(subscription_id)
+    # # app.logger.debug('deleted subscription with id:', str(subscription_id))
 
     @app.route('/')
     def index():
@@ -68,8 +79,8 @@ def create_app():
                 body = json.dumps({'hub.challenge': challenge})
                 status_code = 200
             except Exception as e:
-                app.logger.error('error validating callback address')
-                app.logger.error(e)
+                logging.error('error validating callback address')
+                logging.error(e)
                 body = "error handling GET request"
                 status_code = 404
         elif request.method == 'POST':
@@ -78,8 +89,8 @@ def create_app():
                 body = handle_event(event)
                 status_code = 200
             except Exception as e:
-                app.logger.error('error listening on webhooks endpoint')
-                app.logger.error(e)
+                logging.error('error listening on webhooks endpoint')
+                logging.error(e)
                 body = "error handling POST request"
                 status_code = 404
 
@@ -89,20 +100,3 @@ def create_app():
         return response
 
     return app
-
-
-
-
-
-# if __name__ == '__main__':
-# # Threaded option to enable multiple instances for multiple user access support
-# # auth.update_security_group()
-# # app.logger.info('attempting to create subscription')
-# # subscription_id = create_subscription()
-# # app.logger.info('created subscription with id: ' + str(subscription_id))
-# app.logger.info('starting app')
-# app.run(threaded=True, port=5000)
-# app.logger.info('app exited')
-# # app.logger.info('attempting to delete subscription')
-# # delete_subscription(subscription_id)
-# # app.logger.debug('deleted subscription with id:', str(subscription_id))

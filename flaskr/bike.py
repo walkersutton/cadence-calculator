@@ -1,6 +1,7 @@
 """ bike.py """
 
-
+# TODO
+# future improvement
 class Bike:
     """ Represents a bike
 
