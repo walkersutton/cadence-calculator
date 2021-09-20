@@ -12,3 +12,5 @@ SERVER_DOMAIN = 'http://localhost:5000'
 
 SUPABASE_URL = os.environ.get('CC_SUPABASE_URL')
 SUPABASE_KEY = os.environ.get('CC_SUPABASE_KEY')
+
+TEST_ATHLETE_ID = os.environ.get('CC_TEST_ATHLETE_ID')
