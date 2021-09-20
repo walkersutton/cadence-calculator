@@ -7,7 +7,7 @@ import requests
 
 
 from flaskr.activities import Activity
-import config
+import flaskr.config as config
 
 # TODO add support for handling 429s
 # https://developers.strava.com/docs/rate-limits/

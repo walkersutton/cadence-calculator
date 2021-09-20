@@ -5,7 +5,7 @@ import time
 import requests
 from supabase_py import create_client, Client
 
-import config
+import flaskr.config as config
 
 
 # should we create a class with a Supabase Client as a property?
@@ -269,6 +269,7 @@ def get_access_token(athlete_id: int) -> str:
                 Otherwise gets a new access token and updates db appropriately
     """
     # TODO: 'updates db appropriately' is a bit misleading above; see above update_access_token(...)
+    
     try:
         supabase = create_db_conn()
         expires_at, access_token = get_latest_access_token(

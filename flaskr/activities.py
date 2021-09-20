@@ -1,7 +1,7 @@
 """ activities.py """
 import logging
 import requests
-import config
+import flaskr.config as config
 from flaskr.gpx import create_gpx
 from flaskr.cadence import generate_cadence_data
 from flaskr.auth import get_access_token
