@@ -1,15 +1,49 @@
+""" tester.py """
 # import os
 # import sys
-# from lxml import etree
 # import plotly.graph_objects as go
 # from collections import deque
 # from statistics import mean
 # import math
+import logging
+import requests
+import flaskr.config as config
+from flaskr.auth import get_access_token
 
 # from calculator import generateCadence, generateSpeed, generateDistance
 # from utils import applicableElements
 
 # DEBUG = True
+
+def upload_test_activity():
+    """
+    TODO
+    """
+    try:
+        headers = {'Authorization': 'Bearer ' +
+                    get_access_token(int(config.TEST_ATHLETE_ID))}
+        params = {
+            'file': 'test.gpx',
+            'name': 'Test Ride',
+            'description': '48x16\r\ntest ride description',
+            'trainer': 'd',
+            'commute': 's',
+            'data_type': 'gpx',
+            'external_id': '123456789'
+        }
+        url = f'{config.API_ENDPOINT}/uploads'
+        response = requests.post(headers=headers, params=params, url=url)
+        # do we also want to be responsible for replacing images and other properties that
+        #  were lost across deleting?
+        if response.ok:
+            return response.json()
+        else:
+            return response
+            # TODO
+    except Exception as e:
+        logging.error('error uploading activity:')
+        logging.error(e)
+
 
 
 # def actualCadenceList(tree):
