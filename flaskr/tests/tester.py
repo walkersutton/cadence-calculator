@@ -15,7 +15,7 @@ from flaskr.auth import get_access_token
 
 # DEBUG = True
 
-def upload_test_activity():
+def upload_activity(test_file_path, external_id):
     """
     TODO
     """
@@ -23,27 +23,43 @@ def upload_test_activity():
         headers = {'Authorization': 'Bearer ' +
                     get_access_token(int(config.TEST_ATHLETE_ID))}
         params = {
-            'file': 'test.gpx',
             'name': 'Test Ride',
             'description': '48x16\r\ntest ride description',
-            'trainer': 'd',
-            'commute': 's',
+            'trainer': 'trainer',
+            'commute': 'commute',
             'data_type': 'gpx',
-            'external_id': '123456789'
+            'external_id': external_id # if this is breaking, cast this as a string
+        }
+        files = {
+            'file': open(test_file_path, 'rb')
         }
         url = f'{config.API_ENDPOINT}/uploads'
-        response = requests.post(headers=headers, params=params, url=url)
-        # do we also want to be responsible for replacing images and other properties that
-        #  were lost across deleting?
+        response = requests.post(files=files, headers=headers, params=params, url=url)
+        if response.ok:
+            return response.json()
+        else:
+            return response
+    except Exception as e:
+        logging.error('error uploading activity:')
+        logging.error(e)
+
+def uploaded_activity_id(external_id):
+    """
+    TODO
+    """
+    try:
+        headers = {'Authorization': 'Bearer ' +
+                    get_access_token(int(config.TEST_ATHLETE_ID))}
+        url = f'{config.API_ENDPOINT}/uploads/{external_id}'
+        response = requests.get(headers=headers, url=url)
         if response.ok:
             return response.json()
         else:
             return response
             # TODO
     except Exception as e:
-        logging.error('error uploading activity:')
+        logging.error('error getting uploaded activity id:')
         logging.error(e)
-
 
 
 # def actualCadenceList(tree):
