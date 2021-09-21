@@ -5,7 +5,6 @@ import sys
 
 import requests
 
-
 from flaskr.activities import Activity
 import flaskr.config as config
 

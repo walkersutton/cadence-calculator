@@ -18,6 +18,7 @@ from flaskr.auth import get_access_token
 def upload_activity(test_file_path, external_id):
     """
     TODO
+    Returns: the uploadId of the activity
     """
     try:
         headers = {'Authorization': 'Bearer ' +
@@ -36,24 +37,23 @@ def upload_activity(test_file_path, external_id):
         url = f'{config.API_ENDPOINT}/uploads'
         response = requests.post(files=files, headers=headers, params=params, url=url)
         if response.ok:
-            return response.json()
-        else:
-            return response
+            return response.json()['id']
     except Exception as e:
         logging.error('error uploading activity:')
         logging.error(e)
+    return None
 
-def uploaded_activity_id(external_id):
+def uploaded_activity_id(upload_id):
     """
     TODO
     """
     try:
         headers = {'Authorization': 'Bearer ' +
                     get_access_token(int(config.TEST_ATHLETE_ID))}
-        url = f'{config.API_ENDPOINT}/uploads/{external_id}'
+        url = f'{config.API_ENDPOINT}/uploads/{upload_id}'
         response = requests.get(headers=headers, url=url)
         if response.ok:
-            return response.json()
+            return response.json()['activity_id']
         else:
             return response
             # TODO
@@ -61,6 +61,7 @@ def uploaded_activity_id(external_id):
         logging.error('error getting uploaded activity id:')
         logging.error(e)
 
+# upload_activity('./test.gpx', 'test_external_id')
 
 # def actualCadenceList(tree):
 #     elements = applicableElements(tree)
