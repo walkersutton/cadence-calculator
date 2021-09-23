@@ -9,59 +9,14 @@ import logging
 import requests
 import flaskr.config as config
 from flaskr.auth import get_access_token
+from flaskr.activities import upload_activity, uploaded_activity_id
 
 # from calculator import generateCadence, generateSpeed, generateDistance
 # from utils import applicableElements
 
-# DEBUG = True
-
-def upload_activity(test_file_path, external_id):
-    """
-    TODO
-    Returns: the uploadId of the activity
-    """
-    try:
-        headers = {'Authorization': 'Bearer ' +
-                    get_access_token(int(config.TEST_ATHLETE_ID))}
-        params = {
-            'name': 'Test Ride',
-            'description': '48x16\r\ntest ride description',
-            'trainer': 'trainer',
-            'commute': 'commute',
-            'data_type': 'gpx',
-            'external_id': external_id # if this is breaking, cast this as a string
-        }
-        files = {
-            'file': open(test_file_path, 'rb')
-        }
-        url = f'{config.API_ENDPOINT}/uploads'
-        response = requests.post(files=files, headers=headers, params=params, url=url)
-        if response.ok:
-            return response.json()['id']
-    except Exception as e:
-        logging.error('error uploading activity:')
-        logging.error(e)
-    return None
-
-def uploaded_activity_id(upload_id):
-    """
-    TODO
-    """
-    try:
-        headers = {'Authorization': 'Bearer ' +
-                    get_access_token(int(config.TEST_ATHLETE_ID))}
-        url = f'{config.API_ENDPOINT}/uploads/{upload_id}'
-        response = requests.get(headers=headers, url=url)
-        if response.ok:
-            return response.json()['activity_id']
-        else:
-            return response
-            # TODO
-    except Exception as e:
-        logging.error('error getting uploaded activity id:')
-        logging.error(e)
-
-# upload_activity('./test.gpx', 'test_external_id')
+athlete_id = int(config.TEST_ATHLETE_ID)
+upload_id = upload_activity(athlete_id, 'test ride', '48x16\r\ntest ride description', 'trainer', 'commute', 'gpx', 'ex_id', './test.gpx')
+activity_id = uploaded_activity_id(athlete_id, upload_id)
 
 # def actualCadenceList(tree):
 #     elements = applicableElements(tree)
