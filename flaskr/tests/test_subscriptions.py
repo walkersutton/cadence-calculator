@@ -1,23 +1,20 @@
-import subscriptions
-import sys
 import unittest
 
-sys.path.append('..')
-
+from flaskr.subscriptions import get_existing_subscriptions, get_subscription_id, delete_subscription
 
 class TestSubscriptions(unittest.TestCase):
 
     @unittest.skip('I do not want to hit the API rate limit')
     # deletes subscription if there was an existing subscription
     def test_subscriptions_flow(self):
-        initial_subscriptions = subscriptions.get_existing_subscriptions()
-        subscription_id = subscriptions.get_subscription_id()
+        # initial_subscriptions = get_existing_subscriptions()
+        subscription_id = get_subscription_id()
         self.assertIsNotNone(subscription_id)
-        current_subscriptions = subscriptions.get_existing_subscriptions()
+        current_subscriptions = get_existing_subscriptions()
         self.assertEqual(len(current_subscriptions), 1)
-        self.assertEqual(subscriptions.delete_subscription(
-            subscription_id), 'successfully deleted')
-        self.assertEqual(len(subscriptions.get_existing_subscriptions()), 0)
+        self.assertTrue(delete_subscription(
+            subscription_id))
+        self.assertEqual(len(get_existing_subscriptions()), 0)
 
 
 if __name__ == '__main__':
