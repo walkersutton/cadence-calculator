@@ -1,26 +1,33 @@
 """ gpx.py """
 from datetime import datetime, timedelta
 import json
+import os
 from lxml import etree
 
-def create_gpx(stream: dict, activity: dict) -> str:
+# TODO this needs to be broken down into smaller logical parts
+def create_gpx(stream: dict, activity: dict, filename: str, filetype: str) -> bool:
     """ Creates a GPX file with this stream's data
 
-            Args:
-                stream (obj)
-
-            TODO
-
-            Returns a filename to the newly created gpx file
-            TODO tar compress before creating post request
+    Args:
+        stream:
+            a Strava stream object with all
+            TODO link to stream schema
+        activity:
+            a Strava activity object
+        filename:
+            the desired file name
+        filetype:
+            the desired file type
+    Returns:
+        Whether or not the file was successfully created
     """
-    activity = {
-        'start_time': '2021-09-14T10:28:25Z',
-        'device_name': 'wahooo',
-        'name': 'mornnning ride'
-    }
+    # activity = {
+    #     'start_time': '2021-09-14T10:28:25Z',
+    #     'device_name': 'wahooo',
+    #     'name': 'mornnning ride'
+    # }
     datetime_fmt = '%Y-%m-%dT%H:%M:%SZ'
-    start_datetime = activity['start_time']
+    start_datetime = activity['start_date']
     XSI = 'http://www.w3.org/2001/XMLSchema-instance'
     GPXTPX = 'http://www.garmin.com/xmlschemas/TrackPointExtension/v1'
     GPXX = 'http://www.garmin.com/xmlschemas/GpxExtensions/v3'
@@ -36,10 +43,10 @@ def create_gpx(stream: dict, activity: dict) -> str:
     for s in schema:
         schema_location += s
 
-    f = open('st.json')
-    stream = json.load(f)
-
-    gpx = etree.Element('gpx', creator=activity['device_name'], xmlns='http://www.topografix.com/GPX/1/1', version='1.1', nsmap=NSMAP)
+    # f = open('st.json')
+    # stream = json.load(f)
+    creator = 'todo replace creator name'
+    gpx = etree.Element('gpx', creator=creator, xmlns='http://www.topografix.com/GPX/1/1', version='1.1', nsmap=NSMAP)
     gpx.set('{http://www.w3.org/2001/XMLSchema-instance}schemaLocation', schema_location)
 
     doc = etree.ElementTree(gpx)
@@ -82,9 +89,9 @@ def create_gpx(stream: dict, activity: dict) -> str:
         if 'heartrate' in stream:
             heartrate = etree.SubElement(trackpoint_extension, '{%s}hr' % (GPXTPX))
             heartrate.text = str(stream['heartrate']['data'][ii])
-        # if 'cadence' in stream:
-        #     cadence = etree.SubElement(trackpoint_extension, 'cadence')
-        #     cadence.text = str(stream['cadence']['data'][ii])
+        if 'cadence' in stream:
+            cadence = etree.SubElement(trackpoint_extension, 'cadence')
+            cadence.text = str(stream['cadence']['data'][ii])
         # if 'watts' in stream:
         #     watts = etree.SubElement(trackpoint_extension, 'watts')
         #     watts.text = str(stream['watts']['data'][ii])
@@ -103,10 +110,18 @@ def create_gpx(stream: dict, activity: dict) -> str:
             # OTHER STREAM
             # distance - don't need(?)
             # DistanceStream	An instance of DistanceStream.
-    doc.write('output6.xml', xml_declaration=True, encoding='UTF-8', pretty_print=True)
+    # TODO
+    # if filetype == 'gpx':
+    #     pass
+    # elif filetype == 'tar.gz':
+    #     pass
+    # else:
+    #     logging.error('invalid file type')
+    #     pass
 
-    return 'output6.xml'
-
+    filename = f'{filename}.{filetype}'
+    doc.write(filename, xml_declaration=True, encoding='UTF-8', pretty_print=True)
+    return os.path.exists(filename)
 
 # NOTES
 # * look into python gpx validation (or maybe just xml)
