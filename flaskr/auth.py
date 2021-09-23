@@ -1,22 +1,24 @@
-""" auth.py """
+''' auth.py '''
 import logging
 import time
 
 import requests
 from supabase_py import create_client, Client
 
-import flaskr.config as config
-
+from flaskr import config
 
 # should we create a class with a Supabase Client as a property?
 
+def auth_url() -> str:
+    ''' Generates the url used to authenticate new Strava users
 
-def auth_url() -> None:
-    """ returns: Strava OAuth URL
-    """
+    Returns:
+        A Strava OAuth url
+    '''
     try:
         auth_endpoint = 'https://www.strava.com/oauth/authorize'
         redirect_uri = config.SERVER_DOMAIN + '/auth'
+        # TODO update scope
         scope = 'activity:read_all'
         return f'{auth_endpoint}?client_id={config.STRAVA_CLIENT_ID}&redirect_uri={redirect_uri}&response_type=code&scope={scope}'
     except Exception as e:
@@ -26,131 +28,138 @@ def auth_url() -> None:
 
 
 def create_db_conn() -> Client:
-    """
-    Creates a connection to Supabase
-    returns: supabase Client object
-    """
+    ''' Creates a connection to Supabase
+
+    Returns:
+        A Supabase Client
+    '''
     try:
         logging.info('connecting to db...')
-        url = config.SUPABASE_URL
-        key = config.SUPABASE_KEY
-        supabase: Client = create_client(url, key)
+        supabase_url = config.SUPABASE_URL
+        supabase_key = config.SUPABASE_KEY
+        supabase: Client = create_client(supabase_url, supabase_key)
         logging.info('connected to db!')
         return supabase
     except Exception as e:
         logging.error('error creating connection to database:')
         logging.error(e)
-        return None
+    return None
 
-# def get_query_values(cursor):
-# # TODO deprecate?
-
-#     try:
-#         vals = []
-#         for val in cursor:
-#             vals.append(val)
-#         if len(vals) > 0:
-#             return vals[0]
-#         else:
-#             return vals
-#     except Exception as e:
-#         logging.error('error getting query value:')
-#         logging.error(e)
-
-
-# Executes and returns value of query in a tuple
-# If query doesn't match any rows, returns empty list
-# def execute_query(conn, query):
-# # TODO deprecate?
-#     try:
-# 		# TODO
-# 		# supabase
-#         # cursor = conn.cursor()
-#         # cursor.execute(query)
-#         return get_query_values(cursor)
-#     except Exception as e:
-#         logging.error('error executing query:')
-#         logging.error(query)
-#         logging.error(e)
-
-
-# def commit_query(conn, query):
-#     """ TODO deprecate? """
-#     try:
-#         cursor = conn.cursor()
-#         cursor.execute(query)
-#         conn.commit()
-#     except Exception as e:
-#         logging.error('error comitting query:')
-#         logging.error(query)
-#         logging.error(e)
-
+def insert_record(supabase: Client, table_name: str, query: dict) -> None:
+    ''' Inserts a record into a table
+    
+    Args:
+        supabase:
+            connection to Supabase
+        table_name:
+            the name of the Supabase table
+        query:
+            the object to be inserted
+    '''
+    try:
+        supabase.table(table_name).insert(query).execute()
+    except Exception as e:
+        logging.error(f'error inserting records into {table_name}:')
+        logging.error(query)
+        logging.error(e)
 
 def insert_access_token(supabase: Client, athlete_id: int, access_token: str, expires_at: int) -> None:
-    """ Inserts a new record into Supabase access_token table """
-    try:
-        insert_query = {
-            'athlete_id': athlete_id,
-            'access_token_code': access_token,
-            'expires_at': expires_at
-        }
-        supabase.table('access_token').insert(insert_query).execute()
-    except Exception as e:
-        logging.error('error inserting access token:')
-        logging.error(insert_query)
-        logging.error(e)
-
+    ''' Stores a new access_token
+    
+    Args:
+        supabase:
+            connection to Supabase
+        athlete_id:
+            the id of the athlete
+        access_token:
+            the access_token
+        expires_at:
+            when this access_token expires (unix time)A
+    '''
+    insert_query = {
+        'athlete_id': athlete_id,
+        'access_token_code': access_token,
+        'expires_at': expires_at
+    }
+    insert_record(supabase, 'access_token', insert_query)
 
 def insert_refresh_token(supabase: Client, athlete_id: int, refresh_token: str) -> None:
-    """ Inserts a new record into Supabase refresh_token table """
-    try:
-        insert_query = {
-            'athlete_id': athlete_id,
-            'refresh_token_code': refresh_token,
-            'created_at': round(time.time())
-        }
-        supabase.table('refresh_token').insert(insert_query).execute()
-    except Exception as e:
-        logging.error('error inserting refresh token:')
-        logging.error(insert_query)
-        logging.error(e)
-
+    ''' Stores a new refresh_token
+    
+    Args:
+        supabase:
+            connection to Supabase
+        athlete_id:
+            the id of the athlete
+        access_token:
+            the access_token
+        expires_at:
+            when this access_token expires (unix time)A
+    '''
+    insert_query = {
+        'athlete_id': athlete_id,
+        'refresh_token_code': refresh_token,
+        'created_at': round(time.time())
+    }
+    insert_record(supabase, 'refresh_token', insert_query)
 
 def update_access_token(supabase: Client, athlete_id: int, access_token: str, expires_at: int) -> None:
-    """ Inserts a new record into Supabase access_token table """
-    # TODO: update once functionality changes
+    ''' Inserts a  access_token record
+ 
+    TODO: Modify once updates are supported by Supabase
+
+    Explanation: Since Supabase doesn't support UPDATEs yet, update_access_token(...) will
+        just insert, and we will perform some extra logic to clean expired access tokens and
+        retreive the latest access token when we query
+
+    Args:
+        supabase:
+            connection to Supabase
+        athlete_id:
+            the id of the athlete
+        access_token:
+            the access_token
+        expires_at:
+            when this access_token expires (unix time)A
+    '''
     try:
-        # TODO: this is shit
-        # Explanation: Since Supabase doesn't support UPDATEs yet, update_access_token(...) will just insert, and we will perform some extra logic to clean expired access tokens and retreive the latest access token when we query
         # update_query = f"UPDATE access_token SET access_token='{access_token}', expires_at={expires_at} WHERE athlete_id={athlete_id};"
-        # update_query = {}
         insert_access_token(supabase, athlete_id, access_token, expires_at)
     except Exception as e:
         logging.error('error updating access_token:')
-        # logging.error(update_query)
         logging.error(e)
 
 
 def update_refresh_token(supabase: Client, athlete_id: int, refresh_token: str) -> None:
-    """ Inserts a new record into Supabase refresh_token table """
-    # TODO: update once functionality changes
+    ''' Inserts a new refresh_token record
+    
+    TODO: Modify once updates are supported by Supabase
+
+    Explanation: Same as above
+
+    Args:
+        supabase:
+            connection to Supabase
+        athlete_id:
+            the id of the athlete
+        refresh_token:
+            the refresh_token
+    '''
     try:
-        # TODO: this is shit
-        # Explanation: same as above
         # update_query = f"UPDATE refresh_token SET refresh_token='{refresh_token}' WHERE athlete_id={athlete_id};"
         insert_refresh_token(supabase, athlete_id, refresh_token)
     except Exception as e:
         logging.error('error updating refresh_token:')
-        # logging.error(update_query)
         logging.error(e)
 
 
 def token_exchange(code: str) -> None:
-    """
-    code:	a string provided by Strava used to authenticate this user
+    ''' Requests and stores refresh and access tokens from Strava
 
-    Attempts to request refresh and access tokens. If all goes well, these tokens are added to the database.
-    """
+    Args:
+        code:
+            a string provided by Strava used to authenticate this user
+    '''
     try:
         url = 'https://www.strava.com/oauth/token'
         data = {
@@ -159,7 +168,7 @@ def token_exchange(code: str) -> None:
             'code': code,
             'grant_type': 'authorization_code'
         }
-        response = requests.post(url=url, data=data)
+        response = requests.post(data=data, url=url)
         if response.ok:
             obj = response.json()
             athlete_id = obj['athlete']['id']
@@ -186,27 +195,38 @@ def token_exchange(code: str) -> None:
         logging.error(e)
 
 def get_latest_refresh_token(supabase: Client, athlete_id: int) -> str:
-    """
-    Finds the youngest refresh token for this user
-    returns: the refresh token (String)
-    """
+    ''' Gets the youngest refresh_token for this athlete
+
+    Args:
+        supabase:
+            connection to Supabase
+        athlete_id:
+            the id of the athlete
+
+    Returns: The refresh token
+    '''
     # TODO - this method will no longer be needed once UPDATEs are functional
     data = supabase.table('refresh_token').select('*').execute()['data']
     created_at = 0
-    refresh_token = ''
+    refresh_token = None
     for record in data:
         if record['athlete_id'] == athlete_id and record['created_at'] > created_at:
             created_at, refresh_token = record['created_at'], record['refresh_token_code']
     return refresh_token
+    # TODO add None handling
 
 
 def request_new_access_token(supabase: Client, athlete_id: int) -> str:
-    """
-        Requests a new access token
-        (access tokens are short lived with a 6 hour life)
-        TODO
-        returns: a String representing the new access token
-    """
+    ''' Requests a new access_token from Strava (access_tokens are short lived with a 6 hour life)
+
+    Args:
+        supabase:
+            connection to Supabase
+        athlete_id:
+            the id of the athlete
+    Returns:
+        the requested access_token
+    '''
     try:
         # TODO: once functionality is added for completing more advanced queries, rewrite this
         # refresh_token_query = f'SELECT refresh_token FROM refresh_token WHERE athlete_id={athlete_id};'
@@ -226,7 +246,6 @@ def request_new_access_token(supabase: Client, athlete_id: int) -> str:
             expires_at = obj['expires_at']
             refresh_token = obj['refresh_token']
             try:
-                supabase = create_db_conn()
                 update_access_token(supabase, athlete_id,
                                     access_token, expires_at)
                 if refresh_token != get_latest_refresh_token(supabase, athlete_id):
@@ -248,36 +267,50 @@ def request_new_access_token(supabase: Client, athlete_id: int) -> str:
 
 
 def get_latest_access_token(supabase: Client, athlete_id: int) -> tuple[int, str]:
-    """
-    Finds the youngest access token for this user
-    returns: the access token (String), and the expiration time(Integer)
-    """
+    ''' Gets the youngest access token for this user
+
+    Args:
+        supabase:
+            connection to Supabase
+        athlete_id:
+            the id of the athlete
+    Returns:
+        The access_token and expiration time
+    '''
     # TODO - this method will no longer be needed once UPDATEs are functional
     # expires_at_access_token_query = f'SELECT expires_at, access_token FROM access_token WHERE athlete_id={athlete_id};'
     data = supabase.table('access_token').select('*').execute()['data']
     expires_at = 0
-    access_token = ''
+    access_token = None
     for record in data:
         if record['athlete_id'] == athlete_id and record['expires_at'] > expires_at:
             expires_at, access_token = record['expires_at'], record['access_token_code']
     return expires_at, access_token
+    # TODO add None handling
 
 
 def get_access_token(athlete_id: int) -> str:
-    """
-    returns:	the existing short-lived access token if it isn't dead.
-                Otherwise gets a new access token and updates db appropriately
-    """
+    ''' Gets an access_token for the athlete
+
+    Args:
+        athlete_id
+            the id of the athlete
+
+    Returns:
+        The existing access_token if it isn't dead.
+        Otherwise requests a new access_token and updates database
+    '''
     # TODO: 'updates db appropriately' is a bit misleading above; see above update_access_token(...)
-    
+
     try:
         supabase = create_db_conn()
         expires_at, access_token = get_latest_access_token(
             supabase, athlete_id)
         if expires_at < round(time.time()):
             access_token = request_new_access_token(supabase, athlete_id)
-        return access_token
+        if access_token:
+            return access_token
     except Exception as e:
-        logging.error('error getting access token:')
+        logging.error('error getting access_token:')
         logging.error(e)
     return None
