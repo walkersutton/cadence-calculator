@@ -1,4 +1,4 @@
-""" cadence.py """
+''' cadence.py '''
 import logging
 # from collections import deque
 # from statistics import mean
@@ -11,22 +11,24 @@ DEBUG = True
 
 
 def generate_cadence(distance_travelled: float, chainring: int, cog: int, wheel_diameter: int = 622, tire_width: int = 25) -> float:
-    """ Generates an integer value for the instantaneous cadence
+    ''' Generates an integer value for the instantaneous cadence
 
     Args:
-		distance_travelled: float
-			The distance travelled in M/s
-		chainring: int
-			The chainring size
-		cog: int
-			The cog size
-		wheel_diameter: int
-			The wheel diameter in mm
-		tire_width: int
-			The tire width in mm
-    Returns
-		The instantaneous cadence as an integer in revolutions per time_rate
-    """
+		distance_travelled:
+			the distance travelled in M/s
+		chainring:
+			the chainring size
+		cog:
+			the cog size
+		wheel_diameter:
+			the wheel diameter in mm
+		tire_width
+			the tire width in mm
+    Returns:
+		The instantaneous cadence as an integer in revolutions per minute
+    '''
+    # TODO - important
+    # i think this is chalked - need to look closely at this
     try:
         return distance_travelled * 60 / (math.pi * (wheel_diameter + (2 * tire_width)) / 1000 * (chainring / cog))
     except Exception as e:
@@ -35,25 +37,30 @@ def generate_cadence(distance_travelled: float, chainring: int, cog: int, wheel_
         return None
 
 
-# might want tire_width, diameter, etc.
-def generate_cadence_data(distances: list, chainring: int, cog: int, wheel_diameter: int, tire_width: int) -> list:
-    """ Generates a list of cadence values based on input
-        Args:
-			distances:
-				TODO
-			chainring:
-				TODO
-			cog:
-				TODO
-        Returns a list of int
-			representing instantaneous cadence values in rotations per minute
-    """
+def generate_cadence_data(distances: list, chainring: int, cog: int, wheel_diameter: int = 622, tire_width: int = 25) -> list[int]:
+    ''' Generates a list of cadence values based on input
+
+    Args:
+        distances:
+            distances measured from the origin in 1 second intervals (*usuallly 1 seoncd intervals)
+        chainring:
+            the chainring size
+        cog:
+            the cog size
+        wheel_diameter:
+            the wheel diameter in mm
+        tire_width
+            the tire width in mm
+
+    Returns:
+        The instantaneous cadence values in revolutions per minute
+    '''
     cadences = []
     last_distance_travelled = 0
     for distance_travelled in distances:
         #  use bike Class?
         cadences.append(generate_cadence(
-            distance_travelled - last_distance_travelled, chainring, cog, wheel_diameter, tire_width))
+            int(distance_travelled - last_distance_travelled, chainring, cog, wheel_diameter, tire_width)))
         last_distance_travelled = distance_travelled
     return cadences
     # TODO we might want to clean cadences to smooth over?

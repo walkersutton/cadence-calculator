@@ -1,4 +1,4 @@
-""" subscriptions.py """
+''' subscriptions.py '''
 import json
 import logging
 import sys
@@ -11,21 +11,24 @@ import flaskr.config as config
 # TODO add support for handling 429s
 # https://developers.strava.com/docs/rate-limits/
 
-
+# TODO is this an unused method? only appears to be called in tests; hmm....
 def get_existing_subscriptions() -> dict:
-    """ Returns a list of subscriptions
-    (this list should never have more than 1 item)
-    [
-        {
-            "id": 12345,
-            "resource_state": 1,
-            "application_id": 12345,
-            "callback_url": "https://url.org/callback",
-            "created_at": "1970-01-01T20:20:20Z",
-            "updated_at": "2000-01-01T20:20:20Z"
-        }
-    ]
-    """
+    ''' Gets the subscriptions for this Strava client
+
+    Returns:
+        A list of subscription objects (this list should never have more than 1 item)
+        Example:
+        [
+            {
+                "id": 12345,
+                "resource_state": 1,
+                "application_id": 12345,
+                "callback_url": "https://url.org/callback",
+                "created_at": "1970-01-01T20:20:20Z",
+                "updated_at": "2000-01-01T20:20:20Z"
+            }
+        ]
+    '''
     try:
         url = f'{config.API_ENDPOINT}/push_subscriptions'
         data = {
@@ -44,7 +47,7 @@ def get_existing_subscriptions() -> dict:
 
 
 def get_subscription_id() -> int:
-    """ Returns the ID of an available subscription (new ID or existing ID) """
+    ''' Gets the id of an available subscription (existing or new id) '''
     try:
         callback_url = config.SERVER_DOMAIN + '/subscribe'
         url = f'{config.API_ENDPOINT}/push_subscriptions'
@@ -54,11 +57,10 @@ def get_subscription_id() -> int:
             'callback_url': callback_url,
             'verify_token': config.VERIFY_TOKEN
         }
-        response = requests.post(url=url, data=data)
+        response = requests.post(data=data, url=url)
+        # TODO rather than sending a post everytime to Strava, why don't we store subscription information? is this nonsensical?
         if response.ok:
-            # subscription creation response
-            subscription_id = response.json()['id']
-            return subscription_id
+            return response.json()['id']
         else:
             return get_existing_subscriptions()[0]['id']
     except Exception as e:
@@ -67,38 +69,44 @@ def get_subscription_id() -> int:
     return None
 
 
-def delete_subscription(subscription_id: int) -> str:
-    """ Deletes the subscription with the given subscription_id
+def delete_subscription(subscription_id: int) -> bool:
+    ''' Deletes the subscription with the given subscription_id
 
     Args:
-        subscription_id: int
-            the ID of the subscription to be deleted
-    """
+        subscription_id:
+            The id of the subscription to be deleted
+    Returns:
+        Whether or not the subscription was deleted
+    '''
     try:
-        url = f'{config.API_ENDPOINT}/push_subscriptions/' + \
-            str(subscription_id)
+        url = f'{config.API_ENDPOINT}/push_subscriptions/{subscription_id}'
         data = {
             'client_id': config.STRAVA_CLIENT_ID,
             'client_secret': config.STRAVA_CLIENT_SECRET
         }
-        response = requests.delete(url=url, data=data)
+        response = requests.delete(data=data, url=url)
         if response.ok:
-            return 'successfully deleted'
+            return True
         else:
             logging.error('error deleting subscription')
             logging.error(response.text)
-            sys.exit(1)
+            return False
     except Exception as e:
-        logging.error('error deleting subscription:')
+        logging.error('error performing subscription delete:')
         logging.error(e)
-    return None
+    return False
 
 
 def handle_event(event: str) -> str:
-    """ Handles users' activity & profile updates and acts accordingly
+    ''' Handles users' activity & profile updates and acts accordingly
 
-    Returns json TODO
-    """
+    Args:
+        event:
+            TODO
+
+    Returns:
+        returns the body of the response to be sent back...... TODO 
+    '''
     response = {}
     try:
         event = json.loads(event)
@@ -111,15 +119,21 @@ def handle_event(event: str) -> str:
             activity = Activity(object_id, owner_id)
             if activity.requires_cadence_data():
                 # KUDOS WILL BE DELETED
+                # IMAGES WILL BE DELETED
                 logging.debug('handle_event triggered')
                 logging.debug(f'owner_id: {owner_id}')
                 logging.debug(f'object_type: {object_type}')
                 logging.debug(activity.obj)
-                # activity.replace_activity()
-        response = {
-            'status': 200,
-            'body': 'something happened, but little descipriotn . ya done goofed - TODO might neeed to change this body? but also jsut might not matter?'
-        }
+                if not activity.replace_activity():
+                    response = {
+                        'status': 200,
+                        'body': 'something happened, but little descipriotn . ya done goofed - TODO might neeed to change this body? but also jsut might not matter?'
+                    }
+                else:
+                    logging.error('handle_event: error replacing activity')
+                    return None
+                    # TODO change this ^ - look into what th eexpected response should be 
+                    # maybe we want to store GPX so that we don't lose data - store with activity_id and athletE_id I guess?
     except Exception as e:
         logging.error('failed handling event:')
         logging.error(e)

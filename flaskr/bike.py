@@ -1,9 +1,9 @@
-""" bike.py """
+''' bike.py '''
 
 # TODO
 # future improvement
 class Bike:
-    """ Represents a bike
+    ''' Represents a bike
 
     Args:
             self.chainring:			the number of teeth on this bike's chainring
@@ -12,10 +12,10 @@ class Bike:
             self.unit:				the units being used to represent tire_width and wheel_diameter
             self.wheel_diameter:	the diameter of this bike's wheels
 
-    """
+    '''
 
     def __init__(self, chainring: int, cog: int, tire_width: int, wheel_diameter: int) -> None:
-        """ constructor """
+        ''' constructor '''
         self.chainring = chainring
         self.cog = cog
         self.tire_width = tire_width
@@ -23,13 +23,13 @@ class Bike:
         self.wheel_diameter = wheel_diameter
 
     def distance_per_revolution(self, unit):
-        """ Determines how much distance this bike travels per chainring revolution
+        ''' Determines how much distance this bike travels per chainring revolution
 
         Args:
                 unit:
 
-        """
+        '''
 
     def method_b(self):
-        """ meslkdjf"""
+        ''' meslkdjf'''
         return self.chainring * self.cog
