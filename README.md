@@ -41,16 +41,20 @@ Should you have any problems while installing or using the tool, please open up 
 * `Python 3` (currently on 3.8.2; probably works on other versions as well?)
 
 ## Setup
-1. `git clone https://github.com/walkersutton/cadence-calculator.git`
-2. `cd cadence-calculator/`
-3. `python3 -m venv venv`
-4. `source venv/bin/activate`
-5. `python -m pip install -r requirements.txt`
+```sh
+git clone https://github.com/walkersutton/cadence-calculator.git
+cd cadence-calculator/
+python3 -m venv venv
+source venv/bin/activate
+python -m pip install -r requirements.txt
+```
 
 ## Running
-1. `export FLASK_APP=flaskr`
-2. `export FLASK_ENV=development`
-3. `flask run`
+```sh
+export FLASK_APP=flaskr
+export FLASK_ENV=development
+flask run
+```
 
 ## Warnings
 * Not all GPX files are created equally - I may've missed a few cases where your GPX file has a different construction than the ones I used for testing.
