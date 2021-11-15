@@ -36,7 +36,6 @@ def create_app() -> Flask:
         return render_template('about.html', title='About')
 
 
-    # pylint: disable=redefined-builtin
     @app.route('/help')
     def help():
         ''' help '''

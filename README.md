@@ -2,43 +2,20 @@
 
 ![Cadence Calculator Logo](https://i.imgur.com/XCdXTfzt.jpg)
 
-<!-- **Read more about this project [here](https://walkercsutton.com/projects/cadence-calculator).** -->
+<!-- **Read more about this project [here](https://walkercsutton.com/projects/cadence-calculator/todo).** -->
 
 ![Cadence Data Generation](https://i.imgur.com/ThHWdmr.gif)
 
 Cadence Calculator **generates cadence data for your fixed gear GPX activities.**
 
 ## Connect with Strava
-[Automatically generate cadence data for your Strava activities](https://cadencecalculator.herokuapp.com)
+[Automatically generate cadence data for your Strava activities](https://cadecalc.app)
 
 ## Getting Started
 Should you have any problems while installing or using the tool, please open up a [new issue](https://github.com/walkersutton/cadence-calculator/issues).
 
-## File Structure
-```
-.
-├── Procfile                # Heroku deployment requirement
-├── config.py               # environment variables
-├── flaskr                  #
-│   ├── __init__.py         # core Flask module
-│   ├── activities.py       #
-│   ├── auth.py             # authentication magic
-│   ├── bike.py             #
-│   ├── cadence.py          #
-│   ├── gpx.py              #
-│   ├── subscriptions.py    # subscription management
-│   ├── tester.py           # used to verify accuracy of computed cadence values
-│   ├── utils.py            #
-│   ├── static              #
-│   ├── templates           # HTML templates for rendering webpages
-│   └── tests               #
-├── lint.sh                 #
-├── requirements.txt        # python dependencies
-└── setup.py                #
-```
-
 ### Requirement
-* `Python 3` (currently on 3.8.2; probably works on other versions as well?)
+* `Python 3`
 
 ## Setup
 ```sh
