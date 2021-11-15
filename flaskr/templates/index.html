@@ -9,25 +9,20 @@
     <ol>
         <li>Ride your bike</li>
     </ol>
-        <img class='gif' src={{ url_for('static', filename='images/ride_bike.gif') }} alt='Ride your bike' longdesc='https://www.youtube.com/watch?v=0pyJzZ3RUMw'>
-
+        <img class='gif' src={{ url_for('static', filename='images/ride_bike.gif') }} title='Cooper Rayyyy' alt='Ride your bike' longdesc='https://www.youtube.com/watch?v=0pyJzZ3RUMw'>
     <ol start="2">
         <li>Record your gear ratio:</li>
     </ol>
         <img class='gif' src={{ url_for('static', filename='images/strava_desc.gif') }} alt='Enter chainring/cog ratio:'>
-
     <ol start="3">
         <li>Analyze your cadence</li>
     </ol>
         <img class='wide-gif' src={{ url_for('static', filename='images/cadence.gif') }} alt='Cadence data visualization'>
-
     <div id='strava-connect' class='center round-border'>
         <a href={{ auth_url }}>
             <img src={{ url_for('static', filename='images/btn_strava_connectwith_orange.svg') }} alt='Connect with Strava'>
         </a>
     </div>
-
 </div>
-
 
 {% endblock %}
