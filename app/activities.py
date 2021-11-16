@@ -1,4 +1,3 @@
-''' activities.py '''
 import logging
 import requests
 from selenium import webdriver

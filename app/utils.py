@@ -1,4 +1,3 @@
-''' utils.py '''
 ''' TODO merge with cadence.py'''
 from enum import Enum
 import math
@@ -100,3 +99,4 @@ def speed(orig, dest, dist_unit=Unit.METERS, time_rate=TIMEUNIT.HOUR):
         # if (computed_speed > 60):
         # 	computed_speed = 0
     return int(computed_speed)
+

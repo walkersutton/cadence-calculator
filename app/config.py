@@ -1,4 +1,3 @@
-""" config.py """
 import os
 
 STRAVA_CLIENT_ID = os.environ.get('CADENCE_CALCULATOR_CLIENT_ID')
@@ -20,3 +19,4 @@ TEST_ATHLETE_PASSWORD = os.environ.get('CC_TEST_ATHLETE_PASSWORD')
 PERSONAL_ATHLETE_ID = os.environ.get('STRAVA_ATHLETE_ID')
 PERSONAL_STRAVA_EMAIL = os.environ.get('STRAVA_EMAIL')
 PERSONAL_STRAVA_PASSWORD = os.environ.get('STRAVA_PASSWORD')
+

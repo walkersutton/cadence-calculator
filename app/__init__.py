@@ -1,4 +1,3 @@
-''' __init__.py '''
 import json
 
 import logging
@@ -10,7 +9,6 @@ from flaskr.subscriptions import handle_event
 
 
 def create_app() -> Flask:
-    ''' TODO '''
     app = Flask(__name__)
     # # Threaded option to enable multiple instances for multiple user access support
     # # auth.update_security_group()
@@ -26,19 +24,16 @@ def create_app() -> Flask:
 
     @app.route('/')
     def index():
-        ''' index '''
         return render_template('index.html', title='Home', auth_url=auth_url())
 
 
     @app.route('/about')
     def about():
-        ''' about '''
         return render_template('about.html', title='About')
 
 
     @app.route('/help')
     def help():
-        ''' help '''
         return render_template('help.html', title='Help')
 
 
@@ -69,7 +64,6 @@ def create_app() -> Flask:
 
     @app.route('/subscribe', methods=['GET', 'POST'])
     def subscribe():
-        ''' subscribe '''
         status_code = -1
         if request.method == 'GET':
             # subscription validation request

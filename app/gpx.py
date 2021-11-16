@@ -1,4 +1,3 @@
-""" gpx.py """
 from datetime import datetime, timedelta
 import json
 import os

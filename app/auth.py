@@ -1,4 +1,3 @@
-''' auth.py '''
 import logging
 import time
 

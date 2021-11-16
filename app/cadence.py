@@ -1,4 +1,3 @@
-''' cadence.py '''
 import logging
 # from collections import deque
 # from statistics import mean
