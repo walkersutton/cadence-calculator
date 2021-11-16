@@ -16,3 +16,5 @@ terry*
 lint.sh
 
 *.egg-info
+
+bike.py
