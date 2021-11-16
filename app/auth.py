@@ -4,7 +4,7 @@ import time
 import requests
 from supabase_py import create_client, Client
 
-from flaskr import config
+from app import config
 
 # should we create a class with a Supabase Client as a property?
 

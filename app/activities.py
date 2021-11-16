@@ -4,10 +4,10 @@ from selenium import webdriver
 from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.firefox.options import Options
 
-import flaskr.config as config
-from flaskr.gpx import create_gpx
-from flaskr.cadence import generate_cadence_data
-from flaskr.auth import get_access_token
+import app.config as config
+from app.gpx import create_gpx
+from app.cadence import generate_cadence_data
+from app.auth import get_access_token
 
 # TODO remove if don't need
 # def athlete_exists(conn, athlete_id):

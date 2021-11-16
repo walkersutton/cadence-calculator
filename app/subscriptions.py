@@ -4,8 +4,8 @@ import sys
 
 import requests
 
-from flaskr.activities import Activity
-import flaskr.config as config
+from app.activities import Activity
+import app.config as config
 
 # TODO add support for handling 429s
 # https://developers.strava.com/docs/rate-limits/

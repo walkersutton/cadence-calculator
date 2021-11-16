@@ -3,8 +3,8 @@ import json
 import logging
 from flask import Flask, make_response, render_template, request
 
-from flaskr.auth import auth_url, token_exchange
-from flaskr.subscriptions import handle_event
+from app.auth import auth_url, token_exchange
+from app.subscriptions import handle_event
 # get_subscription_id, delete_subscription
 
 
@@ -35,6 +35,10 @@ def create_app() -> Flask:
     @app.route('/help')
     def help():
         return render_template('help.html', title='Help')
+
+    @app.route('/unfortunately')
+    def unfortunately():
+        return render_template('unfortunately.html', title='Unfortunately...')
 
 
     @app.route('/auth')

@@ -28,8 +28,7 @@ python -m pip install -r requirements.txt
 
 ## Running
 ```sh
-export FLASK_APP=flaskr
-export FLASK_ENV=development
+source .env
 flask run
 ```
 
