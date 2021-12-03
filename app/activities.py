@@ -3,22 +3,10 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.firefox.options import Options
-
 import app.config as config
 from app.gpx import create_gpx
 from app.cadence import generate_cadence_data
 from app.auth import get_access_token
-
-# TODO remove if don't need
-# def athlete_exists(conn, athlete_id):
-#     try:
-#         athlete_query = f'SELECT * FROM access_token WHERE athlete_id={athlete_id};'
-#         athlete_access_token_entry = auth.execute_query(conn, athlete_query)
-#         return len(athlete_access_token_entry) != 0
-#     except Exception as e:
-#         logging.error('error determining athlete existence:')
-#         logging.error(athlete_query)
-#         logging.error(e)
 
 def delete_activity(athlete_id: int, activity_id: int) -> bool:
     ''' Deletes the given activity_id
@@ -51,13 +39,14 @@ def delete_activity(athlete_id: int, activity_id: int) -> bool:
         driver.find_element_by_xpath('//div[@class="selection"]').click()
         driver.find_element_by_xpath('//a[@data-method="delete"][text()[contains(.,"Delete")]]').click()
         Alert(driver).accept()
+        driver.quit()
+        return True
         # TODO
         # make a call to the strava api and see if the activity is still available
-        return True
     except Exception as e:
-        driver.quit()
         logging.error('generic Selenium exception:')
         logging.error(e)
+        driver.quit()
         return False
     
 def upload_activity(athlete_id: int, name: str, desc: str, trainer: str, commute: str, data_type: str, external_id: str, file_path: str) -> int:
@@ -146,7 +135,7 @@ def uploaded_activity_id(athlete_id: int, upload_id: int) -> int:
 
 class Activity:
     ''' Represents a Strava activity object
-    TODO link to JSON schema
+    https://developers.strava.com/docs/reference/#api-models-DetailedActivity
 
     Properties:
         obj: dict
