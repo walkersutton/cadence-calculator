@@ -16,7 +16,7 @@ def create_app() -> Flask:
     # subscription_id = get_subscription_id()
     # app.logger.info('created subscription with id:' + str(subscription_id))
     # app.logger.info('starting app')
-    app.run(threaded=True, port=5000)
+    app.run(threaded=True)
     # app.logger.info('app exited')
     # app.logger.info('attempting to delete subscription')
     # delete_subscription(subscription_id)
