@@ -12,15 +12,15 @@ def create_app() -> Flask:
     app = Flask(__name__)
     # Threaded option to enable multiple instances for multiple user access support
     # auth.update_security_group()
-    app.logger.info('attempting to create subscription')
-    subscription_id = get_subscription_id()
-    app.logger.info('created subscription with id:' + str(subscription_id))
-    app.logger.info('starting app')
+    # app.logger.info('attempting to create subscription')
+    # subscription_id = get_subscription_id()
+    # app.logger.info('created subscription with id:' + str(subscription_id))
+    # app.logger.info('starting app')
     app.run(threaded=True, port=5000)
-    app.logger.info('app exited')
-    app.logger.info('attempting to delete subscription')
-    delete_subscription(subscription_id)
-    app.logger.debug('deleted subscription with id:' + str(subscription_id))
+    # app.logger.info('app exited')
+    # app.logger.info('attempting to delete subscription')
+    # delete_subscription(subscription_id)
+    # app.logger.debug('deleted subscription with id:' + str(subscription_id))
 
     @app.route('/')
     def index():
