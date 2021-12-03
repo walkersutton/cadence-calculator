@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 import json
 import os
 from lxml import etree
+import logging
+import tarfile
 
 # TODO this needs to be broken down into smaller logical parts
 def create_gpx(stream: dict, activity: dict, filename: str, filetype: str) -> bool:
@@ -10,7 +12,7 @@ def create_gpx(stream: dict, activity: dict, filename: str, filetype: str) -> bo
     Args:
         stream:
             a Strava stream object with all
-            TODO link to stream schema
+            https://developers.strava.com/docs/reference/#api-models-StreamSet
         activity:
             a Strava activity object
         filename:
@@ -54,6 +56,7 @@ def create_gpx(stream: dict, activity: dict, filename: str, filetype: str) -> bo
 
     time = etree.SubElement(metadata, 'time')
     time.text = start_datetime
+    start_datetime = datetime.strptime(start_datetime, datetime_fmt)
 
     trk = etree.SubElement(gpx, 'trk')
 
@@ -67,24 +70,21 @@ def create_gpx(stream: dict, activity: dict, filename: str, filetype: str) -> bo
 
     trkseg = etree.SubElement(trk, 'trkseg')
 
-    start_datetime = datetime.strptime(start_datetime, datetime_fmt)
+    # we are assuminmg that all streams will have latlng based on the range parameter
     for ii in range(stream['latlng']['original_size']):
-        # we are assuminmg that all streams will have latlng based on the range parameter
         trkpt = etree.SubElement(trkseg, 'trkpt', lat=str(stream['latlng']['data'][ii][0]), lon=str(stream['latlng']['data'][ii][1]))
-
+        
+        time = etree.SubElement(trkpt, 'time')
+        time.text = (start_datetime + timedelta(seconds=int(stream['time']['data'][ii]))).strftime('%Y-%m-%dT%H:%M:%SZ')
+        
         if 'altitude' in stream:
             ele = etree.SubElement(trkpt, 'ele')
             ele.text = str(stream['altitude']['data'][ii])
-
-        time = etree.SubElement(trkpt, 'time')
-        time.text = (start_datetime + timedelta(seconds=int(stream['time']['data'][ii]))).strftime('%Y-%m-%dT%H:%M:%SZ')
-
-        extensions = etree.SubElement(trkpt, 'extensions')
+        
         # invalid tag name with the colon below - use a xmlns or something
+        extensions = etree.SubElement(trkpt, 'extensions')
         trackpoint_extension = etree.SubElement(extensions, '{%s}TrackPointExtension' % (GPXTPX))
-        # extension_types = ['heartrate', 'cadence', 'latlng', 'distance', ]
-        # TODO
-        # maybe make a for loop here? depending on where the elements go - i imagine they don't all belong to TrackpointExtension
+        # TrackpointExtension Elements:
         if 'heartrate' in stream:
             heartrate = etree.SubElement(trackpoint_extension, '{%s}hr' % (GPXTPX))
             heartrate.text = str(stream['heartrate']['data'][ii])
@@ -109,18 +109,21 @@ def create_gpx(stream: dict, activity: dict, filename: str, filetype: str) -> bo
             # OTHER STREAM
             # distance - don't need(?)
             # DistanceStream	An instance of DistanceStream.
-    # TODO
-    # if filetype == 'gpx':
-    #     pass
-    # elif filetype == 'tar.gz':
-    #     pass
-    # else:
-    #     logging.error('invalid file type')
-    #     pass
 
-    filename = f'{filename}.{filetype}'
-    doc.write(filename, xml_declaration=True, encoding='UTF-8', pretty_print=True)
-    return os.path.exists(filename)
+    if filetype in ['tar.gz', 'gpx']:
+        gpx_filename = f'{filename}.gpx'
+        doc.write(filename, xml_declaration=True, encoding='UTF-8', pretty_print=True)
+        if filetype == 'tar.gz':
+            targz_filename = f'{filename}.tar.gz'
+            tar = tarfile.open(targz_filename, 'w:gz')
+            tar.add(gpx_filename)
+            tar.close()
+            return os.path.exists(targz_filename)
+        else:
+            return os.path.exists(gpx_filename)
+    else: 
+        logging.error('invalid file type')
+        return False
 
 # NOTES
 # * look into python gpx validation (or maybe just xml)
