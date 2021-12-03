@@ -123,16 +123,21 @@ def handle_event(event: str) -> str:
                 logging.debug(f'owner_id: {owner_id}')
                 logging.debug(f'object_type: {object_type}')
                 logging.debug(activity.obj)
-                if not activity.replace_activity():
+                if activity.replace_activity():
                     response = {
                         'status': 200,
-                        'body': 'something happened, but little descipriotn . ya done goofed - TODO might neeed to change this body? but also jsut might not matter?'
+                        'body': 'activity successfully replaced' # could append upload id here, but not sure how accureate that'll be
                     }
                 else:
-                    logging.error('handle_event: error replacing activity')
-                    return None
+                    response = {
+                        'status': 500,
+                        'body': 'error replacing activity'
+                    }
                     # TODO change this ^ - look into what th eexpected response should be 
                     # maybe we want to store GPX so that we don't lose data - store with activity_id and athletE_id I guess?
+            else:
+                return 'activity already has cadence data'
+
     except Exception as e:
         logging.error('failed handling event:')
         logging.error(e)
