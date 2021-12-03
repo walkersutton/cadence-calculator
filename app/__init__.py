@@ -14,13 +14,13 @@ def create_app() -> Flask:
     # auth.update_security_group()
     app.logger.info('attempting to create subscription')
     subscription_id = get_subscription_id()
-    app.logger.info('created subscription with id:', str(subscription_id))
+    app.logger.info('created subscription with id:' + str(subscription_id))
     app.logger.info('starting app')
     app.run(threaded=True, port=5000)
     app.logger.info('app exited')
     app.logger.info('attempting to delete subscription')
     delete_subscription(subscription_id)
-    app.logger.debug('deleted subscription with id:', str(subscription_id))
+    app.logger.debug('deleted subscription with id:' + str(subscription_id))
 
     @app.route('/')
     def index():
@@ -73,6 +73,7 @@ def create_app() -> Flask:
             # subscription validation request
             try:
                 # verify_token = request.args.get('hub.verify_token')
+                logging.warn(request.json())
                 challenge = request.args.get('hub.challenge')
                 body = json.dumps({'hub.challenge': challenge})
                 status_code = 200

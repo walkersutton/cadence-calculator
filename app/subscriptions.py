@@ -38,7 +38,8 @@ def get_existing_subscriptions() -> dict:
         if response.ok:
             return response.json()
         else:
-            logging.error(response.text)
+            logging.error(response.json())
+            return get_existing_subscriptions[0]['id']
     except Exception as e:
         logging.error('error getting existing subscriptions:')
         logging.error(e)
@@ -56,12 +57,19 @@ def get_subscription_id() -> int:
             'callback_url': callback_url,
             'verify_token': config.VERIFY_TOKEN
         }
+        logging.warn(data)
         response = requests.post(data=data, url=url)
         # TODO rather than sending a post everytime to Strava, why don't we store subscription information? is this nonsensical?
+        logging.warning(response.json())
         if response.ok:
             return response.json()['id']
         else:
-            return get_existing_subscriptions()[0]['id']
+            logging.warning(get_existing_subscriptions())
+            subs = get_existing_subscriptions()
+            if len(subs) > 0:
+                return subs [0]['id']
+            else:
+                return 'errorrrrrrrr_id'
     except Exception as e:
         logging.error('error getting subscription id:')
         logging.error(e)
