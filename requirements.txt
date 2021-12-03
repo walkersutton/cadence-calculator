@@ -33,6 +33,7 @@ python-dateutil==2.8.2
 realtime-py==0.1.2
 requests==2.25.1
 rfc3986==1.5.0
+selenium==3.141.0
 six==1.16.0
 sniffio==1.2.0
 supabase-py==0.0.2
