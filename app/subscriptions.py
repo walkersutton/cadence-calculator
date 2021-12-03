@@ -65,7 +65,7 @@ def get_subscription_id() -> int:
     except Exception as e:
         logging.error('error getting subscription id:')
         logging.error(e)
-    return None
+    return 'err_id'
 
 
 def delete_subscription(subscription_id: int) -> bool:
