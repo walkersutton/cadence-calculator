@@ -46,3 +46,6 @@ flask run
 * upload with cadence
 * verify everythign checks out
 * delete old GPX - CAREFUL ! DELETING ACTIVITIES IS FINAL -- KUDOS AND COMMENTS ARE NOT PRESERVED ACROSS DELETIONS
+
+## Feature Requests
+* Cache bike gear ratios
