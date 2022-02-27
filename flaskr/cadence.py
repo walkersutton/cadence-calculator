@@ -36,7 +36,8 @@ def generate_cadence(distance_travelled: float, chainring: int, cog: int, wheel_
         return None
 
 
-def generate_cadence_data(distances: list, chainring: int, cog: int, wheel_diameter: int = 622, tire_width: int = 25) -> list[int]:
+def generate_cadence_data(distances: list, chainring: int, cog: int, wheel_diameter: int = 622, tire_width: int = 25):
+# def generate_cadence_data(distances: list, chainring: int, cog: int, wheel_diameter: int = 622, tire_width: int = 25) -> list[int]:
     ''' Generates a list of cadence values based on input
 
     Args:

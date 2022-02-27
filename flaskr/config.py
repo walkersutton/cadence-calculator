@@ -1,4 +1,5 @@
 import os
+# maybe add another .env file and move environemnt variables there
 
 STRAVA_CLIENT_ID = os.environ.get('CADENCE_CALCULATOR_CLIENT_ID')
 STRAVA_CLIENT_SECRET = os.environ.get('CADENCE_CALCULATOR_CLIENT_SECRET')
@@ -19,4 +20,3 @@ TEST_ATHLETE_PASSWORD = os.environ.get('CC_TEST_ATHLETE_PASSWORD')
 PERSONAL_ATHLETE_ID = os.environ.get('STRAVA_ATHLETE_ID')
 PERSONAL_STRAVA_EMAIL = os.environ.get('STRAVA_EMAIL')
 PERSONAL_STRAVA_PASSWORD = os.environ.get('STRAVA_PASSWORD')
-

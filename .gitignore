@@ -1,7 +1,8 @@
 .DS_Store
-*__pycache__*
+__pycache__/
+*.pyc
 /.vscode
-/venv
+venv/
 test_file.gpx
 *.xml*
 *with_cadence.gpx
@@ -18,3 +19,13 @@ lint.sh
 *.egg-info
 
 bike.py
+
+instance/
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.swp
+*~

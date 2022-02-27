@@ -1,11 +1,15 @@
 import json
 import logging
-import sys
 
+from flask import Blueprint
+from flask import make_response
+from flask import request
 import requests
 
-from app.activities import Activity
-import app.config as config
+from flaskr.activities import Activity
+from flaskr import config
+
+bp = Blueprint('subscribe', __name__, url_prefix="/subscribe")
 
 # TODO add support for handling 429s
 # https://developers.strava.com/docs/rate-limits/
@@ -155,3 +159,36 @@ def handle_event(event: str) -> str:
             'body': 'error'
         }
     return json.dumps(response)
+
+
+@bp.route('/subscribe', methods=['GET', 'POST'])
+def subscribe():
+    status_code = -1
+    if request.method == 'GET':
+        # subscription validation request
+        try:
+            # verify_token = request.args.get('hub.verify_token')
+            logging.warn(request.json())
+            challenge = request.args.get('hub.challenge')
+            body = json.dumps({'hub.challenge': challenge})
+            status_code = 200
+        except Exception as e:
+            logging.error('error validating callback address')
+            logging.error(e)
+            body = "error handling GET request"
+            status_code = 404
+    elif request.method == 'POST':
+        try:
+            event = request.get_json()
+            # body = handle_event(event)
+            status_code = 200
+        except Exception as e:
+            logging.error('error listening on webhooks endpoint')
+            logging.error(e)
+            body = "error handling POST request"
+            status_code = 404
+
+    response = make_response(body)
+    response.status_code = status_code
+    response.mimetype = 'application/json'
+    return response

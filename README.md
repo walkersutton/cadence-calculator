@@ -23,13 +23,13 @@ git clone https://github.com/walkersutton/cadence-calculator.git
 cd cadence-calculator/
 python3 -m venv venv
 source venv/bin/activate
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 ## Running
 ```sh
-source .env
 flask run
+Open http://127.0.0.1:5000 in a browser.
 ```
 
 ## Warnings
@@ -49,3 +49,20 @@ flask run
 
 ## Feature Requests
 * Cache bike gear ratios
+
+
+
+<!-- 
+running with db
+i removed an instances/ folder in root with a sql file file
+$ flask init-db
+$ flask run
+
+$ pip install '.[test]'
+$ pytest
+
+Run with coverage report::
+
+$ coverage run -m pytest
+$ coverage report
+$ coverage html  # open htmlcov/index.html in a browser -->

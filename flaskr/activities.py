@@ -1,12 +1,14 @@
 import logging
+
 import requests
 from selenium import webdriver
 from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.firefox.options import Options
-import app.config as config
-from app.gpx import create_gpx
-from app.cadence import generate_cadence_data
-from app.auth import get_access_token
+
+from flaskr import config
+from flaskr.gpx import create_gpx
+from flaskr.cadence import generate_cadence_data
+from flaskr.auth import get_access_token
 
 def delete_activity(athlete_id: int, activity_id: int) -> bool:
     ''' Deletes the given activity_id
