@@ -11,6 +11,7 @@ flaskr/gpx_test_Files/sort_gpx/
 
 terry*
 
+*~
 *.swp
 *.json
 
@@ -27,5 +28,3 @@ instance/
 htmlcov/
 dist/
 build/
-*.swp
-*~
