@@ -1,1 +1,1 @@
-web: gunicorn "flaskr:create_app()"
+web: gunicorn -c gunicorn.conf.py "flaskr:create_app()"

@@ -9,7 +9,7 @@ from supabase_py import create_client, Client
 
 from flaskr import config
 
-bp = Blueprint('auth', __name__, url_prefix='/auth')
+bp = Blueprint('auth', __name__)
 
 
 def auth_url() -> str:

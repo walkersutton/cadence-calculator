@@ -9,7 +9,7 @@ import requests
 from flaskr.activities import Activity
 from flaskr import config
 
-bp = Blueprint('subscribe', __name__, url_prefix="/subscribe")
+bp = Blueprint('subscriptions', __name__)
 
 # TODO add support for handling 429s
 # https://developers.strava.com/docs/rate-limits/
@@ -63,23 +63,25 @@ def get_subscription_id() -> int:
             'callback_url': callback_url,
             'verify_token': config.VERIFY_TOKEN
         }
-        logging.warn(data)
+        logging.info(data)
         response = requests.post(data=data, url=url)
         # TODO rather than sending a post everytime to Strava, why don't we store subscription information? is this nonsensical?
         logging.warning(response.json())
         if response.ok:
             return response.json()['id']
         else:
-            logging.warning(get_existing_subscriptions())
             subs = get_existing_subscriptions()
+            logging.warning('existing subscriptions:')
+            logging.warning(subs)
             if len(subs) > 0:
                 return subs[0]['id']
             else:
+                logging.error('cannot get subscription')
                 return 'errorrrrrrrr_id'
     except Exception as e:
         logging.error('error getting subscription id:')
         logging.error(e)
-    return 'err_id'
+    return 'errorrrrrrrr_id'
 
 
 def delete_subscription(subscription_id: int) -> bool:
@@ -171,7 +173,7 @@ def subscribe():
         # subscription validation request
         try:
             # verify_token = request.args.get('hub.verify_token')
-            logging.warn(request.json())
+            logging.info(request.args)
             challenge = request.args.get('hub.challenge')
             body = json.dumps({'hub.challenge': challenge})
             status_code = 200
