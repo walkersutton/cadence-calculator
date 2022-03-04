@@ -1,1 +1,1 @@
-web: gunicorn -c gunicorn.conf.py "flaskr:create_app()"
+web: waitress-serve --port=5000 --call 'flaskr:create_app'
