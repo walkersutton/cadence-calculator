@@ -325,7 +325,7 @@ def get_access_token(athlete_id: int) -> str:
     return None
 
 
-@bp.route('/auth', methods=('GET'))
+@bp.route('/auth', methods=['GET'])
 def auth():
     '''
     Strava auth redirect

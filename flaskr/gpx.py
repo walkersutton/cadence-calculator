@@ -74,7 +74,7 @@ def create_gpx(stream: dict, activity: dict, filename: str, filetype: str) -> bo
 
     trkseg = etree.SubElement(trk, 'trkseg')
 
-    # we are assuminmg that all streams will have latlng based on the range parameter
+    # we are assuming that all streams will have latlng based on the range parameter
     for ii in range(stream['latlng']['original_size']):
         trkpt = etree.SubElement(trkseg, 'trkpt', lat=str(
             stream['latlng']['data'][ii][0]), lon=str(stream['latlng']['data'][ii][1]))
