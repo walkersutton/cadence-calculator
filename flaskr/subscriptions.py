@@ -132,26 +132,28 @@ def handle_event(event: str) -> str:
         # TODO: determine if we need a new token for user - not sure if this is relevant
         if object_type == 'activity' and aspect_type in ('create', 'update'):
             activity = Activity(object_id, owner_id)
-            if activity.requires_cadence_data():
-                # KUDOS WILL BE DELETED
-                # IMAGES WILL BE DELETED
-                logging.debug('handle_event triggered')
-                logging.debug(f'owner_id: {owner_id}')
-                logging.debug(f'object_type: {object_type}')
-                logging.debug(activity.obj)
-                if activity.replace_activity():
-                    response = {
-                        'status': 200,
-                        # could append upload id here, but not sure how accureate that'll be
-                        'body': 'activity successfully replaced'
-                    }
-                else:
-                    response = {
-                        'status': 500,
-                        'body': 'error replacing activity'
-                    }
-                    # TODO change this ^ - look into what th eexpected response should be
-                    # maybe we want to store GPX so that we don't lose data - store with activity_id and athletE_id I guess?
+            if activity:
+                logging.info('simply testing this ish')
+            # if activity.requires_cadence_data():
+            #     # KUDOS WILL BE DELETED
+            #     # IMAGES WILL BE DELETED
+            #     logging.debug('handle_event triggered')
+            #     logging.debug(f'owner_id: {owner_id}')
+            #     logging.debug(f'object_type: {object_type}')
+            #     logging.debug(activity.obj)
+            #     if activity.replace_activity():
+            #         response = {
+            #             'status': 200,
+            #             # could append upload id here, but not sure how accureate that'll be
+            #             'body': 'activity successfully replaced'
+            #         }
+            #     else:
+            #         response = {
+            #             'status': 500,
+            #             'body': 'error replacing activity'
+            #         }
+            #         # TODO change this ^ - look into what th eexpected response should be
+            #         # maybe we want to store GPX so that we don't lose data - store with activity_id and athletE_id I guess?
             else:
                 return 'activity already has cadence data'
 
@@ -185,7 +187,7 @@ def subscribe():
     elif request.method == 'POST':
         try:
             event = request.get_json()
-            # body = handle_event(event)
+            body = handle_event(event)
             status_code = 200
         except Exception as e:
             logging.error('error listening on webhooks endpoint')
