@@ -15,6 +15,8 @@ bp = Blueprint('subscribe', __name__, url_prefix="/subscribe")
 # https://developers.strava.com/docs/rate-limits/
 
 # TODO is this an unused method? only appears to be called in tests; hmm....
+
+
 def get_existing_subscriptions() -> dict:
     ''' Gets the subscriptions for this Strava client
 
@@ -71,7 +73,7 @@ def get_subscription_id() -> int:
             logging.warning(get_existing_subscriptions())
             subs = get_existing_subscriptions()
             if len(subs) > 0:
-                return subs [0]['id']
+                return subs[0]['id']
             else:
                 return 'errorrrrrrrr_id'
     except Exception as e:
@@ -138,14 +140,15 @@ def handle_event(event: str) -> str:
                 if activity.replace_activity():
                     response = {
                         'status': 200,
-                        'body': 'activity successfully replaced' # could append upload id here, but not sure how accureate that'll be
+                        # could append upload id here, but not sure how accureate that'll be
+                        'body': 'activity successfully replaced'
                     }
                 else:
                     response = {
                         'status': 500,
                         'body': 'error replacing activity'
                     }
-                    # TODO change this ^ - look into what th eexpected response should be 
+                    # TODO change this ^ - look into what th eexpected response should be
                     # maybe we want to store GPX so that we don't lose data - store with activity_id and athletE_id I guess?
             else:
                 return 'activity already has cadence data'

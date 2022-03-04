@@ -6,6 +6,8 @@ import logging
 import tarfile
 
 # TODO this needs to be broken down into smaller logical parts
+
+
 def create_gpx(stream: dict, activity: dict, filename: str, filetype: str) -> bool:
     """ Creates a GPX file with this stream's data
 
@@ -39,16 +41,18 @@ def create_gpx(stream: dict, activity: dict, filename: str, filetype: str) -> bo
     }
     schema_location = ''
     schema = ['http://www.topografix.com/GPX/1/1 ', 'http://www.topografix.com/GPX/1/1/gpx.xsd ',
-    'http://www.garmin.com/xmlschemas/GpxExtensions/v3 ', 'http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd ',
-    'http://www.garmin.com/xmlschemas/TrackPointExtension/v1 ', 'http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd']
+              'http://www.garmin.com/xmlschemas/GpxExtensions/v3 ', 'http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd ',
+              'http://www.garmin.com/xmlschemas/TrackPointExtension/v1 ', 'http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd']
     for s in schema:
         schema_location += s
 
     # f = open('st.json')
     # stream = json.load(f)
     creator = 'todo replace creator name'
-    gpx = etree.Element('gpx', creator=creator, xmlns='http://www.topografix.com/GPX/1/1', version='1.1', nsmap=NSMAP)
-    gpx.set('{http://www.w3.org/2001/XMLSchema-instance}schemaLocation', schema_location)
+    gpx = etree.Element('gpx', creator=creator,
+                        xmlns='http://www.topografix.com/GPX/1/1', version='1.1', nsmap=NSMAP)
+    gpx.set(
+        '{http://www.w3.org/2001/XMLSchema-instance}schemaLocation', schema_location)
 
     doc = etree.ElementTree(gpx)
 
@@ -72,21 +76,25 @@ def create_gpx(stream: dict, activity: dict, filename: str, filetype: str) -> bo
 
     # we are assuminmg that all streams will have latlng based on the range parameter
     for ii in range(stream['latlng']['original_size']):
-        trkpt = etree.SubElement(trkseg, 'trkpt', lat=str(stream['latlng']['data'][ii][0]), lon=str(stream['latlng']['data'][ii][1]))
-        
+        trkpt = etree.SubElement(trkseg, 'trkpt', lat=str(
+            stream['latlng']['data'][ii][0]), lon=str(stream['latlng']['data'][ii][1]))
+
         time = etree.SubElement(trkpt, 'time')
-        time.text = (start_datetime + timedelta(seconds=int(stream['time']['data'][ii]))).strftime('%Y-%m-%dT%H:%M:%SZ')
-        
+        time.text = (start_datetime + timedelta(seconds=int(
+            stream['time']['data'][ii]))).strftime('%Y-%m-%dT%H:%M:%SZ')
+
         if 'altitude' in stream:
             ele = etree.SubElement(trkpt, 'ele')
             ele.text = str(stream['altitude']['data'][ii])
-        
+
         # invalid tag name with the colon below - use a xmlns or something
         extensions = etree.SubElement(trkpt, 'extensions')
-        trackpoint_extension = etree.SubElement(extensions, '{%s}TrackPointExtension' % (GPXTPX))
+        trackpoint_extension = etree.SubElement(
+            extensions, '{%s}TrackPointExtension' % (GPXTPX))
         # TrackpointExtension Elements:
         if 'heartrate' in stream:
-            heartrate = etree.SubElement(trackpoint_extension, '{%s}hr' % (GPXTPX))
+            heartrate = etree.SubElement(
+                trackpoint_extension, '{%s}hr' % (GPXTPX))
             heartrate.text = str(stream['heartrate']['data'][ii])
         if 'cadence' in stream:
             cadence = etree.SubElement(trackpoint_extension, 'cadence')
@@ -112,7 +120,8 @@ def create_gpx(stream: dict, activity: dict, filename: str, filetype: str) -> bo
 
     if filetype in ['tar.gz', 'gpx']:
         gpx_filename = f'{filename}.gpx'
-        doc.write(filename, xml_declaration=True, encoding='UTF-8', pretty_print=True)
+        doc.write(filename, xml_declaration=True,
+                  encoding='UTF-8', pretty_print=True)
         if filetype == 'tar.gz':
             targz_filename = f'{filename}.tar.gz'
             tar = tarfile.open(targz_filename, 'w:gz')
@@ -121,7 +130,7 @@ def create_gpx(stream: dict, activity: dict, filename: str, filetype: str) -> bo
             return os.path.exists(targz_filename)
         else:
             return os.path.exists(gpx_filename)
-    else: 
+    else:
         logging.error('invalid file type')
         return False
 

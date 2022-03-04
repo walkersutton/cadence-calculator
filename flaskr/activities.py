@@ -10,6 +10,7 @@ from flaskr.gpx import create_gpx
 from flaskr.cadence import generate_cadence_data
 from flaskr.auth import get_access_token
 
+
 def delete_activity(athlete_id: int, activity_id: int) -> bool:
     ''' Deletes the given activity_id
 
@@ -32,14 +33,15 @@ def delete_activity(athlete_id: int, activity_id: int) -> bool:
             exit('delete_activity: athlete_id is invalid')
         opts = Options()
         opts.headless = True
-        driver = webdriver.Firefox(options = opts)
+        driver = webdriver.Firefox(options=opts)
         driver.get('https://www.strava.com/login')
         driver.find_element_by_id('email').send_keys(email)
         driver.find_element_by_id('password').send_keys(password)
         driver.find_element_by_id('login-button').click()
         driver.get(f'https://www.strava.com/activities/{activity_id}')
         driver.find_element_by_xpath('//div[@class="selection"]').click()
-        driver.find_element_by_xpath('//a[@data-method="delete"][text()[contains(.,"Delete")]]').click()
+        driver.find_element_by_xpath(
+            '//a[@data-method="delete"][text()[contains(.,"Delete")]]').click()
         Alert(driver).accept()
         driver.quit()
         return True
@@ -50,7 +52,8 @@ def delete_activity(athlete_id: int, activity_id: int) -> bool:
         logging.error(e)
         driver.quit()
         return False
-    
+
+
 def upload_activity(athlete_id: int, name: str, desc: str, trainer: str, commute: str, data_type: str, external_id: str, file_path: str) -> int:
     ''' Uploads an Activity
 
@@ -76,7 +79,7 @@ def upload_activity(athlete_id: int, name: str, desc: str, trainer: str, commute
     '''
     try:
         headers = {'Authorization': 'Bearer ' +
-                    get_access_token(athlete_id)}
+                   get_access_token(athlete_id)}
         params = {
             'name': name,
             'description': desc,
@@ -100,13 +103,15 @@ def upload_activity(athlete_id: int, name: str, desc: str, trainer: str, commute
         # # do we also want to be responsible for replacing images and other properties that
         # #  were lost across deleting?
 
-        response = requests.post(files=files, headers=headers, params=params, url=url)
+        response = requests.post(
+            files=files, headers=headers, params=params, url=url)
         if response.ok:
             return response.json()['id']
     except Exception as e:
         logging.error('error uploading activity:')
         logging.error(e)
     return None
+
 
 def uploaded_activity_id(athlete_id: int, upload_id: int) -> int:
     ''' Gets the activity_id of a recently uploaded activity
@@ -121,7 +126,7 @@ def uploaded_activity_id(athlete_id: int, upload_id: int) -> int:
     '''
     try:
         headers = {'Authorization': 'Bearer ' +
-                    get_access_token(athlete_id)}
+                   get_access_token(athlete_id)}
         url = f'{config.API_ENDPOINT}/uploads/{upload_id}'
         response = requests.get(headers=headers, url=url)
         if response.ok:
@@ -134,6 +139,7 @@ def uploaded_activity_id(athlete_id: int, upload_id: int) -> int:
         logging.error('error getting uploaded activity id:')
         logging.error(e)
     return None
+
 
 class Activity:
     ''' Represents a Strava activity object
@@ -157,6 +163,7 @@ class Activity:
             athlete_id:
                 The id of the athlete
         '''
+
         def set_gear_ratio(self: Activity) -> None:
             # TODO make sure this method works in this configuration
             ''' Sets the gear ratio '''
@@ -187,7 +194,8 @@ class Activity:
             set_gear_ratio(self)
         except Exception as e:
             logging.error('error accessing activity:')
-            logging.error('is activity_id the first parameter and athlete_id the second parameter???')
+            logging.error(
+                'is activity_id the first parameter and athlete_id the second parameter???')
             logging.error(e)
 
     def get_stream(self) -> dict:
@@ -252,10 +260,10 @@ class Activity:
             logging.error(e)
         return None
 
-
     # TODO - change method name
     # maybe something like 'view' or 'observe' - because we won't ALWAYS be modifyign the
     # activity - it depends on the state
+
     def requires_cadence_data(self) -> bool:
         ''' Determines if this activity needs cadence data generated
 
@@ -266,7 +274,8 @@ class Activity:
             # TODO what is the significance 'average_cadence' in self.obj?
             return (self.obj['type'] == 'Ride' and 'average_cadence' in self.obj and self.cog and self.chainring)
         except Exception as e:
-            logging.error('error determining if this activity requires generated cadence data:')
+            logging.error(
+                'error determining if this activity requires generated cadence data:')
             logging.error(e)
         return False
 
@@ -288,7 +297,6 @@ class Activity:
     # this returns either a 200 with the gpx file
         # print(stream)
 
-
     def replace_activity(self) -> int:
         ''' Uploads a new activity to Strava with with the addition of cadence data.
             This function is only called when cadence data doesn't already exist
@@ -306,14 +314,17 @@ class Activity:
 
             if create_gpx(self.generate_stream(), self.obj, filename, filetype):
                 if delete_activity(self.obj['athlete']['id'], self.obj['id']):
-                    upload_id = upload_activity(self.obj['athlete']['id'], f'{self.obj["name"]} with cadence', self.obj['description'], self.obj['trainer'], self.obj['commute'], filetype, 'ex_id_1', filepath)
+                    upload_id = upload_activity(self.obj['athlete']['id'], f'{self.obj["name"]} with cadence', self.obj[
+                                                'description'], self.obj['trainer'], self.obj['commute'], filetype, 'ex_id_1', filepath)
                     if upload_id:
                         return uploaded_activity_id(self.obj["athlete"]["id"], upload_id)
                     else:
-                        logging.error('replace_activity: error uploading activity')
+                        logging.error(
+                            'replace_activity: error uploading activity')
                         return None
                 else:
-                    logging.error('replace_activity: error deleting old activity')
+                    logging.error(
+                        'replace_activity: error deleting old activity')
                     return None
             else:
                 logging.error('replace_activity: error creating gpx file')

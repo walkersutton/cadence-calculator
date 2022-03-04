@@ -1,13 +1,11 @@
-import json
-import logging
 import os
 
 from flask import Flask
-from flask import make_response
 from flask import render_template
-from flask import request
-
 from flaskr.auth import auth_url
+# apply the blueprints to the app
+from flaskr import auth, blog, subscriptions
+
 
 def create_app(test_config=None) -> Flask:
     '''Create and configure an instance of the Flask application.'''
@@ -47,18 +45,6 @@ def create_app(test_config=None) -> Flask:
     @app.route('/unfortunately')
     def unfortunately():
         return render_template('unfortunately.html', title='Unfortunately...')
-
-    @app.route("/hello")
-    def hello():
-        return "Hello, World!"
-
-    # register the database commands
-    from flaskr import db
-
-    db.init_app(app)
-
-    # apply the blueprints to the app
-    from flaskr import auth, blog, subscriptions
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(blog.bp)

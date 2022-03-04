@@ -13,18 +13,18 @@ def generate_cadence(distance_travelled: float, chainring: int, cog: int, wheel_
     ''' Generates an integer value for the instantaneous cadence
 
     Args:
-		distance_travelled:
-			the distance travelled in M/s
-		chainring:
-			the chainring size
-		cog:
-			the cog size
-		wheel_diameter:
-			the wheel diameter in mm
-		tire_width
-			the tire width in mm
+        distance_travelled:
+                the distance travelled in M/s
+        chainring:
+                the chainring size
+        cog:
+                the cog size
+        wheel_diameter:
+                the wheel diameter in mm
+        tire_width
+                the tire width in mm
     Returns:
-		The instantaneous cadence as an integer in revolutions per minute
+                The instantaneous cadence as an integer in revolutions per minute
     '''
     # TODO - important
     # i think this is chalked - need to look closely at this
@@ -37,7 +37,7 @@ def generate_cadence(distance_travelled: float, chainring: int, cog: int, wheel_
 
 
 def generate_cadence_data(distances: list, chainring: int, cog: int, wheel_diameter: int = 622, tire_width: int = 25):
-# def generate_cadence_data(distances: list, chainring: int, cog: int, wheel_diameter: int = 622, tire_width: int = 25) -> list[int]:
+    # def generate_cadence_data(distances: list, chainring: int, cog: int, wheel_diameter: int = 622, tire_width: int = 25) -> list[int]:
     ''' Generates a list of cadence values based on input
 
     Args:
