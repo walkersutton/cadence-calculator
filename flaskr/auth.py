@@ -1,24 +1,16 @@
-import functools
 import logging
 import time
 
 from flask import Blueprint
-from flask import flash
-from flask import g
-from flask import redirect
 from flask import render_template
 from flask import request
-from flask import session
-from flask import url_for
 import requests
 from supabase_py import create_client, Client
-from werkzeug.security import check_password_hash
-from werkzeug.security import generate_password_hash
 
 from flaskr import config
-from flaskr.db import get_db
 
-bp = Blueprint("auth", __name__, url_prefix="/auth")
+bp = Blueprint('auth', __name__, url_prefix='/auth')
+
 
 def auth_url() -> str:
     ''' Generates the url used to authenticate new Strava users
@@ -36,6 +28,7 @@ def auth_url() -> str:
         logging.error('error creating redirect url:')
         logging.error(e)
         return None
+
 
 def create_db_conn() -> Client:
     ''' Creates a connection to Supabase
@@ -55,9 +48,10 @@ def create_db_conn() -> Client:
         logging.error(e)
     return None
 
+
 def insert_record(supabase: Client, table_name: str, query: dict) -> None:
     ''' Inserts a record into a table
-    
+
     Args:
         supabase:
             connection to Supabase
@@ -73,9 +67,10 @@ def insert_record(supabase: Client, table_name: str, query: dict) -> None:
         logging.error(query)
         logging.error(e)
 
+
 def insert_access_token(supabase: Client, athlete_id: int, access_token: str, expires_at: int) -> None:
     ''' Stores a new access_token
-    
+
     Args:
         supabase:
             connection to Supabase
@@ -93,9 +88,10 @@ def insert_access_token(supabase: Client, athlete_id: int, access_token: str, ex
     }
     insert_record(supabase, 'access_token', insert_query)
 
+
 def insert_refresh_token(supabase: Client, athlete_id: int, refresh_token: str) -> None:
     ''' Stores a new refresh_token
-    
+
     Args:
         supabase:
             connection to Supabase
@@ -113,9 +109,10 @@ def insert_refresh_token(supabase: Client, athlete_id: int, refresh_token: str) 
     }
     insert_record(supabase, 'refresh_token', insert_query)
 
+
 def update_access_token(supabase: Client, athlete_id: int, access_token: str, expires_at: int) -> None:
     ''' Inserts a  access_token record
- 
+
     TODO: Modify once updates are supported by Supabase
 
     Explanation: Since Supabase doesn't support UPDATEs yet, update_access_token(...) will
@@ -142,7 +139,7 @@ def update_access_token(supabase: Client, athlete_id: int, access_token: str, ex
 
 def update_refresh_token(supabase: Client, athlete_id: int, refresh_token: str) -> None:
     ''' Inserts a new refresh_token record
-    
+
     TODO: Modify once updates are supported by Supabase
 
     Explanation: Same as above
@@ -203,6 +200,7 @@ def token_exchange(code: str) -> None:
     except Exception as e:
         logging.error('error exchanging token:')
         logging.error(e)
+
 
 def get_latest_refresh_token(supabase: Client, athlete_id: int) -> str:
     ''' Gets the youngest refresh_token for this athlete
@@ -277,7 +275,7 @@ def request_new_access_token(supabase: Client, athlete_id: int) -> str:
 
 
 def get_latest_access_token(supabase: Client, athlete_id: int):
-# def get_latest_access_token(supabase: Client, athlete_id: int) -> tuple[int, str]:
+    # def get_latest_access_token(supabase: Client, athlete_id: int) -> tuple[int, str]:
     ''' Gets the youngest access token for this user
 
     Args:
@@ -325,7 +323,9 @@ def get_access_token(athlete_id: int) -> str:
         logging.error('error getting access_token:')
         logging.error(e)
     return None
-@bp.route('/auth')
+
+
+@bp.route('/auth', methods=('GET'))
 def auth():
     '''
     Strava auth redirect
@@ -348,102 +348,3 @@ def auth():
 
     # TODO: dynamic title here? - for template
     return render_template('auth.html', title='Authorization', status=status, auth_url=auth_url())
-
-def login_required(view):
-    """View decorator that redirects anonymous users to the login page."""
-
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        if g.user is None:
-            return redirect(url_for("auth.login"))
-
-        return view(**kwargs)
-
-    return wrapped_view
-
-
-@bp.before_app_request
-def load_logged_in_user():
-    """If a user id is stored in the session, load the user object from
-    the database into ``g.user``."""
-    user_id = session.get("user_id")
-
-    if user_id is None:
-        g.user = None
-    else:
-        g.user = (
-            get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
-        )
-
-
-@bp.route("/register", methods=("GET", "POST"))
-def register():
-    """Register a new user.
-
-    Validates that the username is not already taken. Hashes the
-    password for security.
-    """
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        db = get_db()
-        error = None
-
-        if not username:
-            error = "Username is required."
-        elif not password:
-            error = "Password is required."
-
-        if error is None:
-            try:
-                db.execute(
-                    "INSERT INTO user (username, password) VALUES (?, ?)",
-                    (username, generate_password_hash(password)),
-                )
-                db.commit()
-            except db.IntegrityError:
-                # The username was already taken, which caused the
-                # commit to fail. Show a validation error.
-                error = f"User {username} is already registered."
-            else:
-                # Success, go to the login page.
-                return redirect(url_for("auth.login"))
-
-        flash(error)
-
-    return render_template("auth/register.html")
-
-
-@bp.route("/login", methods=("GET", "POST"))
-def login():
-    """Log in a registered user by adding the user id to the session."""
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        db = get_db()
-        error = None
-        user = db.execute(
-            "SELECT * FROM user WHERE username = ?", (username,)
-        ).fetchone()
-
-        if user is None:
-            error = "Incorrect username."
-        elif not check_password_hash(user["password"], password):
-            error = "Incorrect password."
-
-        if error is None:
-            # store the user id in a new session and return to the index
-            session.clear()
-            session["user_id"] = user["id"]
-            return redirect(url_for("index"))
-
-        flash(error)
-
-    return render_template("auth/login.html")
-
-
-@bp.route("/logout")
-def logout():
-    """Clear the current session, including the stored user id."""
-    session.clear()
-    return redirect(url_for("index"))
