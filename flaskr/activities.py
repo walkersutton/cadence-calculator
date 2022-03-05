@@ -269,6 +269,13 @@ class Activity:
 
         Returns:
             Whether or not this Activity requires cadence data to be generated
+
+        When should an activity require cadence data?
+        * when an activity doesn't already have cadence data
+        * either if:
+            * a gear ratio is provided in the description
+            * the bike has previously been seen to be fixed
+
         '''
         try:
             # TODO what is the significance 'average_cadence' in self.obj?
@@ -314,8 +321,8 @@ class Activity:
 
             if create_gpx(self.generate_stream(), self.obj, filename, filetype):
                 if delete_activity(self.obj['athlete']['id'], self.obj['id']):
-                    upload_id = upload_activity(self.obj['athlete']['id'], f'{self.obj["name"]} with cadence', self.obj[
-                                                'description'], self.obj['trainer'], self.obj['commute'], filetype, 'ex_id_1', filepath)
+                    upload_id = upload_activity(self.obj['athlete']['id'], f'{self.obj["name"]} with cadence',
+                                                f'{self.obj["description"]} - cadence by CadeCalc.app', self.obj['trainer'], self.obj['commute'], filetype, 'ex_id_1', filepath)
                     if upload_id:
                         return uploaded_activity_id(self.obj["athlete"]["id"], upload_id)
                     else:
