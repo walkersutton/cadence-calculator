@@ -66,6 +66,7 @@ def get_subscription_id() -> int:
         logging.info(data)
         response = requests.post(data=data, url=url)
         # TODO rather than sending a post everytime to Strava, why don't we store subscription information? is this nonsensical?
+        # or should we call get existing subscriptions first?????
         logging.warning(response.json())
         if response.ok:
             return response.json()['id']
@@ -112,7 +113,7 @@ def delete_subscription(subscription_id: int) -> bool:
     return False
 
 
-def handle_event(event: str) -> str:
+def handle_event(event: dict) -> str:
     ''' Handles users' activity & profile updates and acts accordingly
 
     Args:
@@ -124,7 +125,6 @@ def handle_event(event: str) -> str:
     '''
     response = {}
     try:
-        event = json.loads(event)
         object_type = event['object_type']
         object_id = event['object_id']
         aspect_type = event['aspect_type']
