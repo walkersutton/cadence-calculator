@@ -28,7 +28,9 @@ pip install -r requirements.txt
 
 ## Running
 ```sh
-flask run
+flask run -h 0.0.0.0 -p 5000  # debug logging turned on - not a production server
+OR
+heroku local
 Open http://127.0.0.1:5000 in a browser.
 ```
 
