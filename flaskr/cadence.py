@@ -55,14 +55,18 @@ def generate_cadence_data(distances: list, chainring: int, cog: int, wheel_diame
     Returns:
         The instantaneous cadence values in revolutions per minute
     '''
-    cadences = []
-    last_distance_travelled = 0
-    for distance_travelled in distances:
-        #  use bike Class?
-        cadences.append(generate_cadence(
-            int(distance_travelled - last_distance_travelled, chainring, cog, wheel_diameter, tire_width)))
-        last_distance_travelled = distance_travelled
-    return cadences
+    try:
+        cadences = []
+        last_distance_travelled = 0
+        for distance_travelled in distances:
+            #  use bike Class?
+            cadences.append(generate_cadence(
+                float(distance_travelled - last_distance_travelled), chainring, cog, wheel_diameter, tire_width))
+            last_distance_travelled = distance_travelled
+        return cadences
+    except Exception as e:
+        logging.error('error generating cadence data:')
+        logging.error(e)
     # TODO we might want to clean cadences to smooth over?
 
 # establishing a maxium cadence value
