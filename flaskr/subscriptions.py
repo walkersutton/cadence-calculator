@@ -1,5 +1,7 @@
 import json
 import logging
+from multiprocessing import Process
+import time
 
 from flask import Blueprint
 from flask import make_response
@@ -12,10 +14,10 @@ from flaskr import config
 
 bp = Blueprint('subscriptions', __name__)
 
+SEEN_ACTIVITY_IDS = []
+
 # TODO add support for handling 429s
 # https://developers.strava.com/docs/rate-limits/
-
-# TODO is this an unused method? only appears to be called in tests; hmm....
 
 
 def get_existing_subscriptions() -> dict:
@@ -122,53 +124,73 @@ def handle_event(event: dict) -> str:
             TODO
 
     Returns:
-        returns the body of the response to be sent back...... TODO 
+        returns the body of the response to be sent back...... TODO
     '''
-    response = {}
+    response = None
     try:
         object_type = event['object_type']
         object_id = event['object_id']
         aspect_type = event['aspect_type']
         owner_id = event['owner_id']
         # TODO: determine if we need a new token for user - not sure if this is relevant
+        logging.info('NEW EVENT')
+        logging.info('NEW EVENT')
+        logging.info('NEW EVENT')
+        logging.info(event)
+        potentially_require_cadence_data = False
         if object_type == 'activity' and aspect_type in ('create', 'update'):
-            # bring this raised exception into get_access_token
-            access_token = get_access_token(owner_id)
-            if not access_token:
-                raise LookupError(f'Cannot find access token for athlete {owner_id}')
-            activity = Activity(object_id, owner_id, access_token)
-            if activity.requires_cadence_data():
-                # 
-                # KUDOS WILL BE DELETED
-                # IMAGES WILL BE DELETED
-                # DESC WILL BE DELETED
-                # VERY LITTLE WILL BE PRESERVED
+            # might not need to wait for updates - add activity id earlier maybe?- just being safe for now
+            logging.info('waiting for activity updates to finish')
+            time.sleep(20)
+            logging.info('seen activity ids')
+            logging.info(SEEN_ACTIVITY_IDS)
+            if object_id in SEEN_ACTIVITY_IDS:
+                logging.info(
+                    'already saw this activity - should theoretically have cadence data')
+                potentially_require_cadence_data = False
+            else:
+                logging.info('this is an unseen activity!')
+                potentially_require_cadence_data = True
+            if potentially_require_cadence_data:
+                # bring this raised exception into get_access_token
+                access_token = get_access_token(owner_id)
+                if not access_token:
+                    raise LookupError(
+                        f'Cannot find access token for athlete {owner_id}')
+                activity = Activity(object_id, owner_id, access_token)
+                if activity.requires_cadence_data():
+                    #
+                    # KUDOS WILL BE DELETED
+                    # IMAGES WILL BE DELETED
+                    # DESC WILL BE DELETED
+                    # VERY LITTLE WILL BE PRESERVED
 
-                new_activity_id = activity.replace_activity()
-                logging.info('new activity id')
-                logging.info(new_activity_id)
-                logging.info('new activity id')
-                if new_activity_id:
-                    response = {
-                        'status': 200,
-                        # could append upload id here, but not sure how accurate that'll be
-                        'body': 'activity successfully replaced'
-                    }
-                    logging.info('success replcing')
-                else:
-                    response = {
-                        'status': 500,
-                        'body': 'error replacing activity'
-                    }
-                    logging.info('errorrorror replacing')
-                    # TODO change this ^ - look into what th expected response should be
-                    # maybe we want to store GPX so that we don't lose data - store with activity_id and athletE_id I guess?
-        elif aspect_type == 'delete':
-            logging.info('deleting that ishshhhh')
-            logging.info(event)
-        else:
-            logging.info("Event doesn't require updating")
-            logging.info(event)
+                    new_activity_id = activity.replace_activity()
+                    logging.info('new activity id')
+                    logging.info(new_activity_id)
+                    logging.info('new activity id')
+                    if new_activity_id:
+                        response = {
+                            'status': 200,
+                            # could append upload id here, but not sure how accurate that'll be
+                            'body': 'activity successfully replaced'
+                        }
+                        logging.info('success replcing')
+                        SEEN_ACTIVITY_IDS.append(new_activity_id)
+                    else:
+                        response = {
+                            'status': 500,
+                            'body': 'error replacing activity'
+                        }
+                        logging.info('errorrorror replacing')
+                        # TODO change this ^ - look into what th expected response should be
+                        # maybe we want to store GPX so that we don't lose data - store with activity_id and athletE_id I guess?
+        if not potentially_require_cadence_data:  # delete aspect_type or other
+            response = {
+                'status': 200,
+                # could append upload id here, but not sure how accurate that'll be
+                'body': "activity doesn't require modification"
+            }
             logging.info("Event doesn't require updating")
 
     except Exception as e:
@@ -203,9 +225,8 @@ def subscribe():
         logging.info('/subscribe POST')
         try:
             event = request.get_json()
-            body = handle_event(event)
-            # logging.info('handle event body')
-            # logging.info(body)
+            Process(target=handle_event, args=(event,)).start()
+            body = 'handling new /subscribe POST event'
             status_code = 200
         except Exception as e:
             logging.error('error handling /subscribe POST')
@@ -216,4 +237,5 @@ def subscribe():
     response = make_response(body)
     response.status_code = status_code
     response.mimetype = 'application/json'
+    logging.info('returned response to /subscribe call')
     return response
