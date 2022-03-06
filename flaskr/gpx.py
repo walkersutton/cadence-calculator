@@ -100,7 +100,8 @@ def create_gpx(stream: dict, activity: dict, filename: str, filetype: str) -> bo
                     trackpoint_extension, '{%s}hr' % (GPXTPX))
                 heartrate.text = str(stream['heartrate']['data'][ii])
             if 'cadence' in stream:
-                cadence = etree.SubElement(trackpoint_extension, 'cadence')
+                cadence = etree.SubElement(
+                    trackpoint_extension, '{%s}cad' % (GPXTPX))
                 cadence.text = str(stream['cadence']['data'][ii])
             # if 'watts' in stream:
             #     watts = etree.SubElement(trackpoint_extension, 'watts')
