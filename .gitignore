@@ -3,10 +3,7 @@ __pycache__/
 *.pyc
 /.vscode
 venv/
-test_file.gpx
 *.xml*
-*with_cadence.gpx
-*without_cadence.gpx
 flaskr/gpx_test_Files/sort_gpx/
 geckodriver.log
 
@@ -15,10 +12,7 @@ terry*
 *~
 *.swp
 *.json
-
-lint.sh
-
-*.egg-info
+*.gpx
 
 bike.py
 
