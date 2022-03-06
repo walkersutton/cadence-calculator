@@ -60,8 +60,8 @@ def generate_cadence_data(distances: list, chainring: int, cog: int, wheel_diame
         last_distance_travelled = 0
         for distance_travelled in distances:
             #  use bike Class?
-            cadences.append(generate_cadence(
-                float(distance_travelled - last_distance_travelled), chainring, cog, wheel_diameter, tire_width))
+            cadences.append(int(generate_cadence(
+                distance_travelled - last_distance_travelled, chainring, cog, wheel_diameter, tire_width)))
             last_distance_travelled = distance_travelled
         return cadences
     except Exception as e:
