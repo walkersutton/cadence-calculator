@@ -42,7 +42,7 @@ class Activity:
             Activity description note: 
             * Each line in the description is delimited by "\r\n" 
 
-            
+
             '''
             try:
                 description = self.obj['description']
@@ -52,7 +52,7 @@ class Activity:
                     return
                 lines = description.split('\r\n')
                 for line in lines:
-                    parts = line.split('x') 
+                    parts = line.split('x')
                     if len(parts) >= 2:
                         for ii in range(len(parts) - 1):
                             left, right = parts[ii][-2:], parts[ii + 1][:2]
@@ -81,8 +81,8 @@ class Activity:
                 logging.error('error creating Activity:')
                 logging.error(response.text)
             set_gear_ratio(self)
-            # TODO - gear ratio might not be set - 
-            # need to handle this 
+            # TODO - gear ratio might not be set -
+            # need to handle this
         except Exception as e:
             logging.error('error accessing activity:')
             logging.error(
@@ -344,14 +344,15 @@ class Activity:
             logging.info('theoretical good response')
             logging.info(response)
             return response.json()['activity_id']
-                    # HERE
-                # not returning None because I think it's possible the response tells us the activity is still uploading 
-                # - in that case, we don't want to assume the upload didn't work if it was still in progress
-                # TODO add some better handling for the response here
+            # HERE
+            # not returning None because I think it's possible the response tells us the activity is still uploading
+            # - in that case, we don't want to assume the upload didn't work if it was still in progress
+            # TODO add some better handling for the response here
         except Exception as e:
             logging.error('error getting uploaded activity id:')
             logging.error(e)
-        logging.info('returning none in uploaded_activty id for some odd reason')
+        logging.info(
+            'returning none in uploaded_activty id for some odd reason')
         return None
 
     def replace_activity(self) -> int:

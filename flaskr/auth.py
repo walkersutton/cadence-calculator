@@ -16,6 +16,7 @@ SCOPE = 'read,activity:read,activity:read_all'
 # will eventualy need activity write
 # if you don't provide 'read', 'read' will be appended in the response, so for simplicity, just doing a string comparison here rather than a set comparison - assuming order of permissions is consistent
 
+
 def auth_url() -> str:
     ''' Generates the url used to authenticate new Strava users
 
