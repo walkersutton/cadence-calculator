@@ -79,14 +79,16 @@ class Activity:
                 self.obj = response.json()
             else:
                 logging.error('error creating Activity:')
-                logging.error(response.text)
+                if 'message' in response.text:
+                    logging.error(response.text['message'])
+                else:
+                    logging.error(response.text)
+                raise Exception('This is an invalid activity')
             set_gear_ratio(self)
             # TODO - gear ratio might not be set -
             # need to handle this
         except Exception as e:
             logging.error('error accessing activity:')
-            logging.error(
-                'is activity_id the first parameter and athlete_id the second parameter???')
             logging.error(e)
 
     def get_streams(self) -> dict:
@@ -180,10 +182,17 @@ class Activity:
                 logging.info("Activity requires cadence data")
             else:
                 logging.info("Activity doesn't require cadence data 2222")
+                logging.info(self.obj['type'] == 'Ride')
+                logging.info('average_cadence' not in self.obj)
+                logging.info(self.cog)
+                logging.info(self.chainring)
+
         except Exception as e:
             logging.error(
                 'error determining if this activity requires generated cadence data:')
             logging.error(e)
+            logging.error(self.obj)
+            logging.error(self)
         return requires
 
     # url = f'{config.API_ENDPOINT}/routes/{activity_id}/export_gpx'
@@ -244,6 +253,7 @@ class Activity:
                 '//a[@data-method="delete"][text()[contains(.,"Delete")]]').click()
             Alert(driver).accept()
             driver.quit()
+            logging.info('successfully deleted the activity')
             return True
             # TODO
             # make a call to the strava api and see if the activity is still available
@@ -276,9 +286,9 @@ class Activity:
         Returns:
             The upload_id of the activity
         '''
-
+        
         name = f'{self.obj["name"]} with cadence'
-        description = f'{self.obj["description"]} - cadence by CadeCalc.app'
+        description = f'{self.obj["description"]} - cadence by cadecalc.app'
         trainer = self.obj['trainer']
         commute = self.obj['commute']
         try:
@@ -298,18 +308,18 @@ class Activity:
 
             # TODO review these comments:
             #     'activity_type': self.obj['type'],
-            #     # do we want to add a watermark? - similar to klimat?
             #     'trainer': 1 if self.obj['trainer'] else 0,
             #     'commute': 1 if self.obj['commute'] else 0,
             #     # we might want to use FIT instead since we can preserve more data across replacing
             #     #  (lap & session data +), but lower priority
             # # do we also want to be responsible for replacing images and other properties that
             # #  were lost across deleting?
-            logging.info('about to post')
+            logging.info('about to post the new activity')
             response = requests.post(
                 files=files, headers=headers, params=params, url=url)
-            logging.info('posted')
+            logging.info('posted the new activity')
             if response.ok:
+                logging.info('success posting the new activity')
                 return response.json()['id']
         except Exception as e:
             logging.error('error uploading activity:')
@@ -328,21 +338,28 @@ class Activity:
             The activity_id of the activity
         '''
         try:
+            logging.info('waiting for new activity id to be created')
             headers = {'Authorization': f'Bearer {self.access_token}'}
             url = f'{config.API_ENDPOINT}/uploads/{upload_id}'
             response = requests.get(headers=headers, url=url)
             counter = 0
-            while not response.ok:
-                logging.info('trying response again in 5 seconds')
+            while response.json()['status'] == 'Your activity is still being processed.':
+                logging.info('activity still being processed')
                 counter += 1
                 time.sleep(5)
+                logging.info('trying response again in 5 seconds')
+                logging.info(response)
+                logging.info(response.json())
                 response = requests.get(headers=headers, url=url)
                 if counter == 4 and not response.ok:
                     logging.error('why is the upload taking so fucking long')
                     logging.error('giving up')
                     return None
-            logging.info('theoretical good response')
+            logging.info('Activity finished processing')
+            if response.json()['status'] == 'There was an error processing your activity.':
+                raise Exception('duplicate activity???')
             logging.info(response)
+            logging.info(response.json())
             return response.json()['activity_id']
             # HERE
             # not returning None because I think it's possible the response tells us the activity is still uploading
@@ -379,11 +396,14 @@ class Activity:
                 if self.delete_activity():
                     upload_id = self.upload_activity(
                         filetype, external_id, filepath)
-                    logging.info('uploaded activity id')
+                    logging.info('uploaded id')
                     logging.info(upload_id)
-                    logging.info('uploaded activity id')
+                    logging.info('uploaded id')
                     if upload_id:
                         id = self.uploaded_activity_id(upload_id)
+                        logging.info('the id is here')
+                        logging.info(id)
+                        logging.info('the id is here')
                         if id:
                             logging.info('successfully replaced activity')
                             return id
