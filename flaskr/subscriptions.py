@@ -7,6 +7,7 @@ from flask import request
 import requests
 
 from flaskr.activities import Activity
+from flaskr.auth import get_access_token
 from flaskr import config
 
 bp = Blueprint('subscriptions', __name__)
@@ -131,31 +132,44 @@ def handle_event(event: dict) -> str:
         owner_id = event['owner_id']
         # TODO: determine if we need a new token for user - not sure if this is relevant
         if object_type == 'activity' and aspect_type in ('create', 'update'):
-            activity = Activity(object_id, owner_id)
-            if activity:
-                logging.info('simply testing this ish')
-            # if activity.requires_cadence_data():
-            #     # KUDOS WILL BE DELETED
-            #     # IMAGES WILL BE DELETED
-            #     logging.debug('handle_event triggered')
-            #     logging.debug(f'owner_id: {owner_id}')
-            #     logging.debug(f'object_type: {object_type}')
-            #     logging.debug(activity.obj)
-            #     if activity.replace_activity():
-            #         response = {
-            #             'status': 200,
-            #             # could append upload id here, but not sure how accureate that'll be
-            #             'body': 'activity successfully replaced'
-            #         }
-            #     else:
-            #         response = {
-            #             'status': 500,
-            #             'body': 'error replacing activity'
-            #         }
-            #         # TODO change this ^ - look into what th eexpected response should be
-            #         # maybe we want to store GPX so that we don't lose data - store with activity_id and athletE_id I guess?
-            else:
-                return 'activity already has cadence data'
+            # bring this raised exception into get_access_token
+            access_token = get_access_token(owner_id)
+            if not access_token:
+                raise LookupError(f'Cannot find access token for athlete {owner_id}')
+            activity = Activity(object_id, owner_id, access_token)
+            if activity.requires_cadence_data():
+                # 
+                # KUDOS WILL BE DELETED
+                # IMAGES WILL BE DELETED
+                # DESC WILL BE DELETED
+                # VERY LITTLE WILL BE PRESERVED
+
+                new_activity_id = activity.replace_activity()
+                logging.info('new activity id')
+                logging.info(new_activity_id)
+                logging.info('new activity id')
+                if new_activity_id:
+                    response = {
+                        'status': 200,
+                        # could append upload id here, but not sure how accurate that'll be
+                        'body': 'activity successfully replaced'
+                    }
+                    logging.info('success replcing')
+                else:
+                    response = {
+                        'status': 500,
+                        'body': 'error replacing activity'
+                    }
+                    logging.info('errorrorror replacing')
+                    # TODO change this ^ - look into what th expected response should be
+                    # maybe we want to store GPX so that we don't lose data - store with activity_id and athletE_id I guess?
+        elif aspect_type == 'delete':
+            logging.info('deleting that ishshhhh')
+            logging.info(event)
+        else:
+            logging.info("Event doesn't require updating")
+            logging.info(event)
+            logging.info("Event doesn't require updating")
 
     except Exception as e:
         logging.error('failed handling event:')
@@ -172,6 +186,7 @@ def handle_event(event: dict) -> str:
 def subscribe():
     status_code = -1
     if request.method == 'GET':
+        logging.info('/subscribe GET')
         # subscription validation request
         try:
             # verify_token = request.args.get('hub.verify_token')
@@ -185,14 +200,17 @@ def subscribe():
             body = "error handling GET request"
             status_code = 404
     elif request.method == 'POST':
+        logging.info('/subscribe POST')
         try:
             event = request.get_json()
             body = handle_event(event)
+            # logging.info('handle event body')
+            # logging.info(body)
             status_code = 200
         except Exception as e:
-            logging.error('error listening on webhooks endpoint')
+            logging.error('error handling /subscribe POST')
             logging.error(e)
-            body = "error handling POST request"
+            body = "error handling /subscribe POST"
             status_code = 404
 
     response = make_response(body)

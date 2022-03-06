@@ -11,6 +11,10 @@ from flaskr import config
 
 bp = Blueprint('auth', __name__)
 
+SCOPE = 'read,activity:read,activity:read_all'
+# TODO update scope
+# will eventualy need activity write
+# if you don't provide 'read', 'read' will be appended in the response, so for simplicity, just doing a string comparison here rather than a set comparison - assuming order of permissions is consistent
 
 def auth_url() -> str:
     ''' Generates the url used to authenticate new Strava users
@@ -20,10 +24,12 @@ def auth_url() -> str:
     '''
     try:
         auth_endpoint = 'https://www.strava.com/oauth/authorize'
-        redirect_uri = config.SERVER_DOMAIN + '/auth'
-        # TODO update scope
-        scope = 'activity:read_all'
-        return f'{auth_endpoint}?client_id={config.STRAVA_CLIENT_ID}&redirect_uri={redirect_uri}&response_type=code&scope={scope}'
+        # redirect_uri = config.SERVER_DOMAIN + '/auth'
+        redirect_uri = 'http://localhost:5000/auth'
+        response_type = 'code'
+        scope = SCOPE
+        return f'{auth_endpoint}?client_id={config.STRAVA_CLIENT_ID}&redirect_uri={redirect_uri}&response_type={response_type}&scope={scope}'
+
     except Exception as e:
         logging.error('error creating redirect url:')
         logging.error(e)
@@ -310,7 +316,7 @@ def get_access_token(athlete_id: int) -> str:
         Otherwise requests a new access_token and updates database
     '''
     # TODO: 'updates db appropriately' is a bit misleading above; see above update_access_token(...)
-
+    logging.info(f'Getting access token for athlete: {athlete_id}')
     try:
         supabase = create_db_conn()
         expires_at, access_token = get_latest_access_token(
@@ -330,16 +336,14 @@ def auth():
     '''
     Strava auth redirect
     '''
-    # TODO change to include activity:write eventually
-    required_scope = {'read', 'activity:read_all'}
+    required_scope = SCOPE
     code = request.args.get('code')
     error = request.args.get('error')
     scope = request.args.get('scope')
-    access_scope = set(scope.split(',')) if scope else {}
     status = ''
 
-    if access_scope == required_scope:
-        # token_exchange(code)
+    if scope == required_scope:
+        token_exchange(code)
         status = 'success'
     else:
         status = 'insufficient authorization'
