@@ -2,14 +2,12 @@ import logging
 import time
 
 import requests
-from selenium import webdriver
+from selenium import webdriver, webdriver
 from selenium.webdriver.common.alert import Alert
-from selenium.webdriver.firefox.options import Options
 
 from flaskr import config
 from flaskr.gpx import create_gpx
 from flaskr.cadence import generate_cadence_data
-from flaskr.auth import get_access_token
 
 
 class Activity:
@@ -240,9 +238,12 @@ class Activity:
             logging.error('error getting strava credentials')
             logging.error(e)
         try:
-            opts = Options()
-            opts.headless = True
-            driver = webdriver.Firefox(options=opts)
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.binary_location = config.GOOGLE_CHROME_BIN
+            chrome_options.add_argument('--headless')
+            chrome_options.add_argument('--disable-dev-shm-usage')
+            chrome_options.add_argument('--no-sandbox')
+            driver = webdriver.Chrome(executable_path=config.CHROMEDRIVER_PATH, chrome_options=chrome_options)
             driver.get('https://www.strava.com/login')
             driver.find_element_by_id('email').send_keys(email)
             driver.find_element_by_id('password').send_keys(password)
