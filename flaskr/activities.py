@@ -2,7 +2,9 @@ import logging
 import time
 
 import requests
-from selenium import webdriver, webdriver
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.alert import Alert
 
 from flaskr import config
@@ -238,20 +240,20 @@ class Activity:
             logging.error('error getting strava credentials')
             logging.error(e)
         try:
-            chrome_options = webdriver.ChromeOptions()
-            chrome_options.binary_location = config.GOOGLE_CHROME_BIN
-            chrome_options.add_argument('--headless')
-            chrome_options.add_argument('--disable-dev-shm-usage')
-            chrome_options.add_argument('--no-sandbox')
-            driver = webdriver.Chrome(executable_path=config.CHROMEDRIVER_PATH, chrome_options=chrome_options)
+            service = Service(config.CHROMEDRIVER_PATH)
+            options = webdriver.ChromeOptions()
+            options.binary_location = config.GOOGLE_CHROME_BIN
+            options.add_argument('--headless')
+            options.add_argument('--disable-dev-shm-usage')
+            options.add_argument('--no-sandbox')
+            driver = webdriver.Chrome(service=service, options=options)
             driver.get('https://www.strava.com/login')
-            driver.find_element_by_id('email').send_keys(email)
-            driver.find_element_by_id('password').send_keys(password)
-            driver.find_element_by_id('login-button').click()
+            driver.find_element(By.ID, value='email').send_keys(email)
+            driver.find_element(By.ID, value='password').send_keys(password)
+            driver.find_element(By.ID, 'login-button').click()
             driver.get(f'https://www.strava.com/activities/{activity_id}')
-            driver.find_element_by_xpath('//div[@class="selection"]').click()
-            driver.find_element_by_xpath(
-                '//a[@data-method="delete"][text()[contains(.,"Delete")]]').click()
+            driver.find_element(By.XPATH, value='//div[@title="Actions"]').click()
+            driver.find_element(By.XPATH,value='//a[@data-method="delete"][text()[contains(.,"Delete")]]').click()
             Alert(driver).accept()
             driver.quit()
             logging.info('successfully deleted the activity')
@@ -287,7 +289,7 @@ class Activity:
         Returns:
             The upload_id of the activity
         '''
-        
+
         name = f'{self.obj["name"]} with cadence'
         description = f'{self.obj["description"]} - cadence by cadecalc.app'
         trainer = self.obj['trainer']
