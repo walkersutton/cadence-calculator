@@ -252,8 +252,10 @@ class Activity:
             driver.find_element(By.ID, value='password').send_keys(password)
             driver.find_element(By.ID, 'login-button').click()
             driver.get(f'https://www.strava.com/activities/{activity_id}')
-            driver.find_element(By.XPATH, value='//div[@title="Actions"]').click()
-            driver.find_element(By.XPATH,value='//a[@data-method="delete"][text()[contains(.,"Delete")]]').click()
+            driver.find_element(
+                By.XPATH, value='//div[@title="Actions"]').click()
+            driver.find_element(
+                By.XPATH, value='//a[@data-method="delete"][text()[contains(.,"Delete")]]').click()
             Alert(driver).accept()
             driver.quit()
             logging.info('successfully deleted the activity')
