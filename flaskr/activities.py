@@ -251,6 +251,7 @@ class Activity:
             driver.find_element(By.ID, value='email').send_keys(email)
             driver.find_element(By.ID, value='password').send_keys(password)
             driver.find_element(By.ID, 'login-button').click()
+            driver.find_element(By.XPATH, value='//button[@class="btn-accept-cookie-banner"]').click()
             driver.get(f'https://www.strava.com/activities/{activity_id}')
             driver.find_element(
                 By.XPATH, value='//div[@title="Actions"]').click()
