@@ -6,6 +6,9 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.alert import Alert
+from selenium.webdriver.support.ui import WebDriverWait as wait
+from selenium.webdriver.support.expected_conditions import alert_is_present
+from selenium.common.exceptions import NoSuchElementException
 
 from flaskr import config
 from flaskr.gpx import create_gpx
@@ -227,6 +230,8 @@ class Activity:
         athlete_id = self.obj['athlete']['id']
         activity_id = self.obj['id']
         logging.info('beginning to delete activity')
+        # TODO
+        # store passwords - oooof
         try:
             if athlete_id == int(config.TEST_ATHLETE_ID):
                 email = config.TEST_ATHLETE_EMAIL
@@ -251,20 +256,28 @@ class Activity:
             driver.find_element(By.ID, value='email').send_keys(email)
             driver.find_element(By.ID, value='password').send_keys(password)
             driver.find_element(By.ID, 'login-button').click()
-            driver.find_element(By.XPATH, value='//button[@class="btn-accept-cookie-banner"]').click()
+            # TODO
+            # verify user is logged in - can check for the existence of a class in body/root tag
+            # driver.find_element(By.XPATH, value='//button[@class="btn-accept-cookie-banner"]').click() - pretty sure this is unnecessary
             driver.get(f'https://www.strava.com/activities/{activity_id}')
             driver.find_element(
                 By.XPATH, value='//div[@title="Actions"]').click()
             driver.find_element(
                 By.XPATH, value='//a[@data-method="delete"][text()[contains(.,"Delete")]]').click()
+            wait.until(alert_is_present())
             Alert(driver).accept()
             driver.quit()
             logging.info('successfully deleted the activity')
             return True
             # TODO
             # make a call to the strava api and see if the activity is still available
+        except NoSuchElementException as e:
+            logging.error('Element not found:')
+            logging.error(e)
+            driver.quit()
+            return False
         except Exception as e:
-            logging.error('generic Selenium exception:')
+            logging.error('Generic Selenium exception:')
             logging.error(e)
             driver.quit()
             return False
