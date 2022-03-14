@@ -231,7 +231,7 @@ class Activity:
         activity_id = self.obj['id']
         logging.info('beginning to delete activity')
         # TODO
-        # store passwords - oooof
+        # grab email/passwords from storage , ooooooooof
         try:
             if athlete_id == int(config.TEST_ATHLETE_ID):
                 email = config.TEST_ATHLETE_EMAIL
@@ -240,7 +240,8 @@ class Activity:
                 email = config.PERSONAL_STRAVA_EMAIL
                 password = config.PERSONAL_STRAVA_PASSWORD
             else:
-                logging.info('delete_activity: athlete_id is invalid')
+                logging.error('delete_activity: athlete_id is invalid')
+                return False
         except Exception as e:
             logging.error('error getting strava credentials')
             logging.error(e)

@@ -34,25 +34,22 @@ heroku local
 Open http://127.0.0.1:5000 in a browser.
 ```
 
-## Warnings
-* Not all GPX files are created equally - I may've missed a few cases where your GPX file has a different construction than the ones I used for testing.
-* Generated cadence data quality reflects GPS data quality.
+## Feature Requests
+* Add support for more data streams (power, temperature, etc.)
+* Store gear ratios
 
 ## TODO
 * investigate https://github.com/tkrajina/gpxpy
 * create tests -> publish accuracy
-* DISCUSS STRAVA FLOW
-* DOWNLOAD
 * keep an original
 * delete from account
 * upload with cadence
 * verify everythign checks out
 * delete old GPX - CAREFUL ! DELETING ACTIVITIES IS FINAL -- KUDOS AND COMMENTS ARE NOT PRESERVED ACROSS DELETIONS
 
-## Feature Requests
-* Cache bike gear ratios
-
-
+## Warnings
+* Not all GPX files are created equally - I may've missed a few cases where your GPX file has a different construction than the ones I used for testing.
+* Generated cadence data quality reflects GPS data quality.
 
 <!-- 
 running with db
