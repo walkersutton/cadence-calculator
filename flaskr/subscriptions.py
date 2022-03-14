@@ -141,7 +141,7 @@ def handle_event(event: dict) -> str:
         if object_type == 'activity' and aspect_type in ('create', 'update'):
             # might not need to wait for updates - add activity id earlier maybe?- just being safe for now
             logging.info('waiting for activity updates to finish')
-            time.sleep(20)
+            time.sleep(30) # 20 was too short when the sleep for alert confirmation was 3 seconds- 30 should be conservative
             logging.info('seen activity ids')
             logging.info(SEEN_ACTIVITY_IDS)
             if object_id in SEEN_ACTIVITY_IDS:

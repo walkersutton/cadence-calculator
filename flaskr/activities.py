@@ -390,6 +390,7 @@ class Activity:
             logging.error(e)
         logging.info(
             'returning none in uploaded_activty id for some odd reason')
+            # this is usually because the old activity hasn't been deleted yet
         return None
 
     def replace_activity(self) -> int:
