@@ -264,7 +264,7 @@ class Activity:
                 By.XPATH, value='//div[@title="Actions"]').click()
             driver.find_element(
                 By.XPATH, value='//a[@data-method="delete"][text()[contains(.,"Delete")]]').click()
-            wait.until(alert_is_present())
+            wait(driver, 3).until(alert_is_present())
             Alert(driver).accept()
             driver.quit()
             logging.info('successfully deleted the activity')
