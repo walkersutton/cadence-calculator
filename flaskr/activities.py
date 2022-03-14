@@ -266,6 +266,7 @@ class Activity:
                 By.XPATH, value='//a[@data-method="delete"][text()[contains(.,"Delete")]]').click()
             wait(driver, 3).until(alert_is_present())
             Alert(driver).accept()
+            wait(driver, 3).until(not alert_is_present())
             driver.quit()
             logging.info('successfully deleted the activity')
             return True
