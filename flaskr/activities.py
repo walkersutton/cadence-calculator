@@ -245,6 +245,9 @@ class Activity:
         except Exception as e:
             logging.error('error getting strava credentials')
             logging.error(e)
+        if not(email and password):
+            logging.error('email or password was not set')
+            return False
         try:
             service = Service(config.CHROMEDRIVER_PATH)
             options = webdriver.ChromeOptions()
@@ -342,6 +345,9 @@ class Activity:
             if response.ok:
                 logging.info('success posting the new activity')
                 return response.json()['id']
+            else:
+                logging.error('error posting the new activity')
+                logging.error(response.json())
         except Exception as e:
             logging.error('error uploading activity:')
             logging.error(e)
