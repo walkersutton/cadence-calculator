@@ -190,7 +190,14 @@ def handle_event(event: dict) -> str:
                         logging.info('errorrorror replacing')
                         # TODO change this ^ - look into what th expected response should be
                         # maybe we want to store GPX so that we don't lose data - store with activity_id and athletE_id I guess?
-        if not potentially_require_cadence_data:  # delete aspect_type or other
+        if object_type == 'athlete':
+            response = {
+                'status': 200,
+                # could append upload id here, but not sure how accurate that'll be
+                'body': "athlete update event doesn't require action"
+            }
+            logging.info("Ignoring athlete update event")
+        elif not potentially_require_cadence_data:  # delete aspect_type or other
             response = {
                 'status': 200,
                 # could append upload id here, but not sure how accurate that'll be
