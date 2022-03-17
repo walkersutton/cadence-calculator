@@ -116,6 +116,24 @@ def insert_refresh_token(supabase: Client, athlete_id: int, refresh_token: str) 
     insert_record(supabase, 'refresh_token', insert_query)
 
 
+def insert_scope_record(supabase: Client, athlete_id: int, scope: str) -> None:
+    ''' Stores a new scope record
+
+    Args:
+        supabase:
+            connection to Supabase
+        athlete_id:
+            the id of the athlete
+        scope:
+            the access level this athlete authorized
+    '''
+    insert_query = {
+        'athlete_id': athlete_id,
+        'scope': scope
+    }
+    insert_record(supabase, 'scope_record', insert_query)
+
+
 def update_access_token(supabase: Client, athlete_id: int, access_token: str, expires_at: int) -> None:
     ''' Inserts a  access_token record
 
@@ -166,7 +184,7 @@ def update_refresh_token(supabase: Client, athlete_id: int, refresh_token: str) 
         logging.error(e)
 
 
-def token_exchange(code: str) -> None:
+def token_exchange(code: str, scope: str) -> None:
     ''' Requests and stores refresh and access tokens from Strava
 
     Args:
@@ -194,6 +212,7 @@ def token_exchange(code: str) -> None:
                 insert_access_token(supabase, athlete_id,
                                     access_token, expires_at)
                 insert_refresh_token(supabase, athlete_id, refresh_token)
+                insert_scope_record(supabase, athlete_id, scope)
                 logging.info('user authenticated successfully!')
             except Exception as e:
                 logging.error(
@@ -304,10 +323,12 @@ def get_latest_access_token(supabase: Client, athlete_id: int):
     # TODO add None handling
 
 
-def get_access_token(athlete_id: int) -> str:
+def get_access_token(supabase: Client, athlete_id: int) -> str:
     ''' Gets an access_token for the athlete
 
     Args:
+        supabase:
+            connection to Supabase
         athlete_id
             the id of the athlete
 
@@ -318,7 +339,6 @@ def get_access_token(athlete_id: int) -> str:
     # TODO: 'updates db appropriately' is a bit misleading above; see above update_access_token(...)
     logging.info(f'Getting access token for athlete: {athlete_id}')
     try:
-        supabase = create_db_conn()
         expires_at, access_token = get_latest_access_token(
             supabase, athlete_id)
         if expires_at < round(time.time()):
@@ -327,6 +347,27 @@ def get_access_token(athlete_id: int) -> str:
             return access_token
     except Exception as e:
         logging.error('error getting access_token:')
+        logging.error(e)
+    return None
+
+
+def get_athlete_scope(supabase: Client, athlete_id: int) -> str:
+    ''' Gets the access level authorized by this athlete
+
+    Args:
+        supabase:
+            connection to Supabase
+        athlete_id:
+            the id of the athlete
+    Returns:
+        The scope string
+    '''
+    try:
+        scope = supabase.table('scope_record').select('scope').eq(
+            'athlete_id', str(athlete_id)).execute()['data'][0]['scope']
+        return scope
+    except Exception as e:
+        logging.error('error getting athlete scope')
         logging.error(e)
     return None
 
@@ -343,7 +384,7 @@ def auth():
     status = ''
 
     if scope == required_scope:
-        token_exchange(code)
+        token_exchange(code, scope)
         status = 'success'
     else:
         status = 'insufficient authorization'
