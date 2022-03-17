@@ -9,7 +9,7 @@ from flask import request
 import requests
 
 from flaskr.activities import Activity
-from flaskr.auth import get_access_token
+from flaskr.auth import SCOPE, create_db_conn, get_athlete_scope, get_access_token
 from flaskr import config
 
 bp = Blueprint('subscriptions', __name__)
@@ -153,12 +153,17 @@ def handle_event(event: dict) -> str:
                 potentially_require_cadence_data = True
             if potentially_require_cadence_data:
                 # bring this raised exception into get_access_token
-                access_token = get_access_token(owner_id)
+                supabase = create_db_conn()
+                athlete_scope, access_token = get_athlete_scope(supabase, owner_id), get_access_token(supabase, owner_id)
                 if not access_token:
                     raise LookupError(
                         f'Cannot find access token for athlete {owner_id}')
+                if not athlete_scope or athlete_scope != SCOPE:
+                    raise Exception( # todo pick a better exception type
+                        f'This athlete does not have proper scope authorization')
                 activity = Activity(object_id, owner_id, access_token)
                 if activity.requires_cadence_data():
+
                     #
                     # KUDOS WILL BE DELETED
                     # IMAGES WILL BE DELETED
