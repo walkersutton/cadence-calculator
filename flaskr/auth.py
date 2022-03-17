@@ -11,7 +11,7 @@ from flaskr import config
 
 bp = Blueprint('auth', __name__)
 
-SCOPE = 'read,activity:read,activity:read_all'
+SCOPE = 'read,activity:write,activity:read,activity:read_all'
 # TODO update scope
 # will eventualy need activity write
 # if you don't provide 'read', 'read' will be appended in the response, so for simplicity, just doing a string comparison here rather than a set comparison - assuming order of permissions is consistent
@@ -25,8 +25,7 @@ def auth_url() -> str:
     '''
     try:
         auth_endpoint = 'https://www.strava.com/oauth/authorize'
-        # redirect_uri = config.SERVER_DOMAIN + '/auth'
-        redirect_uri = 'http://localhost:5000/auth'
+        redirect_uri = config.SERVER_DOMAIN + '/auth'
         response_type = 'code'
         scope = SCOPE
         return f'{auth_endpoint}?client_id={config.STRAVA_CLIENT_ID}&redirect_uri={redirect_uri}&response_type={response_type}&scope={scope}'
