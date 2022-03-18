@@ -214,6 +214,7 @@ def update_refresh_token(supabase: Client, athlete_id: int, refresh_token: str) 
         logging.error('error updating refresh_token:')
         logging.error(e)
 
+
 def update_strava_credential(supabase: Client, athlete_id: int, email: str, password: str) -> None:
     '''
     TODO
@@ -221,6 +222,7 @@ def update_strava_credential(supabase: Client, athlete_id: int, email: str, pass
     probably send email to user and provide link to html form where they update credentials
     '''
     pass
+
 
 def token_exchange(code: str, scope: str) -> int:
     ''' Requests and stores refresh and access tokens from Strava
@@ -413,6 +415,7 @@ def get_athlete_scope(supabase: Client, athlete_id: int) -> str:
         logging.error(e)
     return None
 
+
 def get_strava_credential(supabase: Client, athlete_id: int) -> tuple:
     ''' Gets the email and password for this athlete
 
@@ -425,7 +428,8 @@ def get_strava_credential(supabase: Client, athlete_id: int) -> tuple:
         This athlete's (email, password)
     '''
     try:
-        tup = supabase.table('strava_credential').select('email, password').eq('athlete_id', str(athlete_id)).execute()['data'][0]
+        tup = supabase.table('strava_credential').select('email, password').eq(
+            'athlete_id', str(athlete_id)).execute()['data'][0]
         email, password = tup['email'], tup['password']
         # TODO decrypt
         return (email, password)
@@ -433,6 +437,7 @@ def get_strava_credential(supabase: Client, athlete_id: int) -> tuple:
         logging.error('error getting strava credentials')
         logging.error(e)
     return None
+
 
 def verify_strava_creds(email: str, password: str) -> bool:
     ''' Determines if the provided email and password are valid Strava credentials
@@ -451,7 +456,7 @@ def auth():
     '''
     form = forms.StravaCredsForm()
     if request.method == 'POST':
-        if form.validate(): # also form.validate_on_submit which checks post and validate - might want?
+        if form.validate():  # also form.validate_on_submit which checks post and validate - might want?
             email, password = form.email.data, form.password.data
             if verify_strava_creds(email, password):
                 # insert_strava_credential(

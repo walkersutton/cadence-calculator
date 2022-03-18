@@ -222,7 +222,7 @@ class Activity:
         logging.info('beginning to delete activity')
         # TODO
         # grab email/passwords from storage , ooooooooof
-        
+
         try:
             if athlete_id == int(config.TEST_ATHLETE_ID):
                 email = config.TEST_ATHLETE_EMAIL
@@ -352,7 +352,7 @@ class Activity:
             logging.error(e)
         logging.info(
             'returning none in uploaded_activty id for some odd reason')
-            # this is usually because the old activity hasn't been deleted yet
+        # this is usually because the old activity hasn't been deleted yet
         return None
 
     def replace_activity(self) -> int:

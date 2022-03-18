@@ -141,7 +141,8 @@ def handle_event(event: dict) -> str:
         if object_type == 'activity' and aspect_type in ('create', 'update'):
             # might not need to wait for updates - add activity id earlier maybe?- just being safe for now
             logging.info('waiting for activity updates to finish')
-            time.sleep(30) # 20 was too short when the sleep for alert confirmation was 3 seconds- 30 should be conservative
+            # 20 was too short when the sleep for alert confirmation was 3 seconds- 30 should be conservative
+            time.sleep(30)
             logging.info('seen activity ids')
             logging.info(SEEN_ACTIVITY_IDS)
             if object_id in SEEN_ACTIVITY_IDS:
@@ -154,12 +155,13 @@ def handle_event(event: dict) -> str:
             if potentially_require_cadence_data:
                 # bring this raised exception into get_access_token
                 supabase = create_db_conn()
-                athlete_scope, access_token = get_athlete_scope(supabase, owner_id), get_access_token(supabase, owner_id)
+                athlete_scope, access_token = get_athlete_scope(
+                    supabase, owner_id), get_access_token(supabase, owner_id)
                 if not access_token:
                     raise LookupError(
                         f'Cannot find access token for athlete {owner_id}')
                 if not athlete_scope or athlete_scope != SCOPE:
-                    raise Exception( # todo pick a better exception type
+                    raise Exception(  # todo pick a better exception type
                         f'This athlete does not have proper scope authorization')
                 activity = Activity(object_id, owner_id, access_token)
                 if activity.requires_cadence_data():

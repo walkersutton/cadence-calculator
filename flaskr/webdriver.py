@@ -11,6 +11,7 @@ from selenium.common.exceptions import NoSuchElementException
 
 from flaskr import config
 
+
 def delete_activity(email, password, activity_id):
     ''' Deletes the given activity_id
 
