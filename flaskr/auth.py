@@ -5,9 +5,13 @@ from flask import Blueprint
 from flask import render_template
 from flask import request
 import requests
+
+from cryptography.fernet import Fernet
 from supabase_py import create_client, Client
 
 from flaskr import config
+from flaskr import forms
+
 
 bp = Blueprint('auth', __name__)
 
@@ -134,6 +138,33 @@ def insert_scope_record(supabase: Client, athlete_id: int, scope: str) -> None:
     insert_record(supabase, 'scope_record', insert_query)
 
 
+def insert_strava_credential(supabase: Client, athlete_id: int, encrypted_email: bytes, encrypted_password: bytes) -> None:
+    ''' Stores a new set of encrypted credentials
+
+    Args:
+        supabase:
+            connection to Supabase
+        athlete_id:
+            the id of the athlete
+        encrypted_email:
+            this athlete's email, encrypted
+        encrypted_password:
+            this athlete's password, encrypted
+    '''
+    insert_query = {
+        'athlete_id': athlete_id,
+        'email': encrypted_email,
+        'password': encrypted_password
+    }
+    # key = Fernet.generate_key()  # probably going to use a secret here to store the key
+    # fernet = Fernet(key)
+    # encrypted_email = fernet.encrypt(
+    #     bytes(form.email.data, 'utf-8'))
+    # encrypted_password = fernet.encrypt(
+    #     bytes(form.password.data, 'utf-8'))
+    insert_record(supabase, 'strava_credential', insert_query)
+
+
 def update_access_token(supabase: Client, athlete_id: int, access_token: str, expires_at: int) -> None:
     ''' Inserts a  access_token record
 
@@ -183,13 +214,23 @@ def update_refresh_token(supabase: Client, athlete_id: int, refresh_token: str) 
         logging.error('error updating refresh_token:')
         logging.error(e)
 
+def update_strava_credential(supabase: Client, athlete_id: int, email: str, password: str) -> None:
+    '''
+    TODO
+    update strava credentials if current credentails are no longer valid
+    probably send email to user and provide link to html form where they update credentials
+    '''
+    pass
 
-def token_exchange(code: str, scope: str) -> None:
+def token_exchange(code: str, scope: str) -> int:
     ''' Requests and stores refresh and access tokens from Strava
 
     Args:
         code:
             a string provided by Strava used to authenticate this user
+
+    Returns:
+        the athlete_id of the user exchanging tokens
     '''
     try:
         url = 'https://www.strava.com/oauth/token'
@@ -214,6 +255,7 @@ def token_exchange(code: str, scope: str) -> None:
                 insert_refresh_token(supabase, athlete_id, refresh_token)
                 insert_scope_record(supabase, athlete_id, scope)
                 logging.info('user authenticated successfully!')
+                return athlete_id
             except Exception as e:
                 logging.error(
                     'error establishing initial connecting with database:')
@@ -371,25 +413,68 @@ def get_athlete_scope(supabase: Client, athlete_id: int) -> str:
         logging.error(e)
     return None
 
+def get_strava_credential(supabase: Client, athlete_id: int) -> tuple:
+    ''' Gets the email and password for this athlete
 
-@bp.route('/auth', methods=['GET'])
+    Args:
+        supabase:
+            connection to Supabase
+        athlete_id:
+            the id of the athlete
+    Returns:
+        This athlete's (email, password)
+    '''
+    try:
+        tup = supabase.table('strava_credential').select('email, password').eq('athlete_id', str(athlete_id)).execute()['data'][0]
+        email, password = tup['email'], tup['password']
+        # TODO decrypt
+        return (email, password)
+    except Exception as e:
+        logging.error('error getting strava credentials')
+        logging.error(e)
+    return None
+
+def verify_strava_creds(email: str, password: str) -> bool:
+    ''' Determines if the provided email and password are valid Strava credentials
+
+    '''
+    # selenium work here
+    # attempt to login
+    # grab class at top
+    return email and password
+
+
+@bp.route('/auth', methods=['GET', 'POST'])
 def auth():
     '''
     Strava auth redirect
     '''
-    required_scope = SCOPE
-    code = request.args.get('code')
-    error = request.args.get('error')
-    scope = request.args.get('scope')
-    status = ''
+    form = forms.StravaCredsForm()
+    if request.method == 'POST':
+        if form.validate(): # also form.validate_on_submit which checks post and validate - might want?
+            email, password = form.email.data, form.password.data
+            if verify_strava_creds(email, password):
+                # insert_strava_credential(
+                #     athlete_id, encrypted_email, encrypted_password)
+                pass
+            status = 'success'
+        else:
+            # TODO CLEAN
+            return render_template('auth.html', title='Authorization', status='missing creds', form=form)
 
-    if scope == required_scope:
-        token_exchange(code, scope)
-        status = 'success'
+        return render_template('auth.html', title='Authorization', status=status)
+
     else:
-        status = 'insufficient authorization'
-    if error:
-        status = 'error'
-
-    # TODO: dynamic title here? - for template
-    return render_template('auth.html', title='Authorization', status=status, auth_url=auth_url())
+        code = request.args.get('code')
+        error = request.args.get('error')
+        scope = request.args.get('scope')
+        status = ''
+        if scope == SCOPE:
+            form.athlete_id.data = token_exchange(code, scope)
+            status = 'good scope'
+        else:
+            status = 'bad scope'
+        if error:
+            status = 'error'
+        # TODO: dynamic title here? - for template
+        return render_template('auth.html', title='Authorization', status=status, auth_url=auth_url(), form=form)
