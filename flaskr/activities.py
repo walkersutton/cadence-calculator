@@ -266,7 +266,7 @@ class Activity:
             The upload_id of the activity
         '''
 
-        name = f'{self.obj["name"]} with cadence'
+        name = f'{self.obj["name"]}'
         description = f'{self.obj["description"]} - cadence by cadecalc.app'
         trainer = self.obj['trainer']
         commute = self.obj['commute']
