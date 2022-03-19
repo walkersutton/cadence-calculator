@@ -45,7 +45,7 @@ def insert_record(supabase: Client, table_name: str, query: dict) -> None:
         logging.error(e)
 
 
-def update_record(supabase: Client, table_name: str, query: dict, key: str, id: int) -> None:
+def update_record(supabase: Client, table_name: str, query: dict, key: str, val: str) -> None:
     ''' Updates a record into a table
 
     Args:
@@ -57,16 +57,16 @@ def update_record(supabase: Client, table_name: str, query: dict, key: str, id: 
             the object to be updated
         key:
             the column name of the key
-        id:
+        val:
             the value of the record's key to be update
     '''
     try:
-        supabase.table(table_name).update(query).eq(key, id).execute()
+        supabase.table(table_name).update(query).eq(key, val).execute()
     except Exception as e:
         logging.error(f'error updating records in {table_name}')
         logging.error(f'query: {query}')
         logging.error(f'key: {key}')
-        logging.error(f'id: {id}')
+        logging.error(f'val: {val}')
         logging.error(e)
 
 
@@ -83,19 +83,20 @@ def get_access_token(supabase: Client, athlete_id: int) -> str:
         The existing access_token if it isn't dead.
         Otherwise requests a new access_token and updates database
     '''
-    # TODO: 'updates db appropriately' is a bit misleading above; see above update_access_token(...)
     logging.info(f'Getting access token for athlete: {athlete_id}')
+    access_token = None
     try:
-        expires_at, access_token = get_latest_access_token(
-            supabase, athlete_id)
+        data = supabase.table('access_token').select('access_token, expires_at').eq(
+            'athlete_id', str(athlete_id)).execute()['data'][0]
+        access_token, expires_at = data['access_token'], data['expires_at']
         if expires_at < round(time.time()):
             access_token = auth.request_new_access_token(supabase, athlete_id)
-        if access_token:
-            return access_token
     except Exception as e:
         logging.error('error getting access_token:')
+        logging.error(f'athlete_id: {athlete_id}')
+        logging.error(f'data: {data}')
         logging.error(e)
-    return None
+    return access_token
 
 
 def get_latest_access_token(supabase: Client, athlete_id: int):
@@ -163,15 +164,15 @@ def update_access_token(supabase: Client, athlete_id: int, access_token: str, ex
             'expires_at': expires_at
         }
         update_record(supabase, 'access_token',
-                      update_query, 'athlete_id', athlete_id)
+                      update_query, 'athlete_id', str(athlete_id))
         insert_access_token(supabase, athlete_id, access_token, expires_at)
     except Exception as e:
         logging.error('error updating access_token:')
         logging.error(e)
 
 
-def get_latest_refresh_token(supabase: Client, athlete_id: int) -> str:
-    ''' Gets the youngest refresh_token for this athlete
+def get_refresh_token(supabase: Client, athlete_id: int) -> str:
+    ''' Gets the refresh_token for this athlete
 
     Args:
         supabase:
@@ -181,14 +182,14 @@ def get_latest_refresh_token(supabase: Client, athlete_id: int) -> str:
 
     Returns: The refresh token
     '''
-    # TODO - this method will no longer be needed once UPDATEs are functional
-    data = supabase.table('refresh_token').select('*').execute()['data']
-    created_at = 0
-    refresh_token = None
-    for record in data:
-        if record['athlete_id'] == athlete_id and record['created_at'] > created_at:
-            created_at, refresh_token = record['created_at'], record['refresh_token_code']
-    return refresh_token
+    refresh_token_code = None
+    try:
+        refresh_token_code = supabase.table('refresh_token').select('refresh_token_code').eq(
+            'athlete_id', str(athlete_id)).execute()['data'][0]['refresh_token_code']
+    except Exception as e:
+        logging.error(f'error getting refresh token for athlete {athlete_id}')
+        logging.error(e)
+    return refresh_token_code
     # TODO add None handling
 
 
@@ -236,7 +237,7 @@ def update_refresh_token(supabase: Client, athlete_id: int, refresh_token: str) 
             'created_at': round(time.time())
         }
         update_record(supabase, 'refresh_token',
-                      update_query, 'athlete_id', athlete_id)
+                      update_query, 'athlete_id', str(athlete_id))
     except Exception as e:
         logging.error(f'error updating refresh token: {refresh_token}')
         logging.error(f'athlete_id: {athlete_id}')
@@ -254,14 +255,15 @@ def get_athlete_scope(supabase: Client, athlete_id: int) -> str:
     Returns:
         The scope string
     '''
+    scope = None
     try:
         scope = supabase.table('scope_record').select('scope').eq(
             'athlete_id', str(athlete_id)).execute()['data'][0]['scope']
-        return scope
     except Exception as e:
         logging.error('error getting athlete scope')
+        logging.error(f'athlete_id: {athlete_id}')
         logging.error(e)
-    return None
+    return scope
 
 
 def insert_scope_record(supabase: Client, athlete_id: int, scope: str) -> None:

@@ -94,16 +94,17 @@ def request_new_access_token(supabase: Client, athlete_id: int) -> str:
     Returns:
         the requested access_token
     '''
+    access_token = None
     try:
         # TODO: once functionality is added for completing more advanced queries, rewrite this
         # refresh_token_query = f'SELECT refresh_token FROM refresh_token WHERE athlete_id={athlete_id};'
         data = supabase.table('refresh_token').select('*').execute()['data']
-        refresh_token = db.get_latest_refresh_token(supabase, athlete_id)
+        stored_refresh_token = db.get_refresh_token(supabase, athlete_id)
         data = {
             'client_id': config.STRAVA_CLIENT_ID,
             'client_secret': config.STRAVA_CLIENT_SECRET,
             'grant_type': 'refresh_token',
-            'refresh_token': refresh_token
+            'refresh_token': stored_refresh_token
         }
         url = f'{config.API_ENDPOINT}/oauth/token'
         response = requests.post(data=data, url=url)
@@ -115,12 +116,11 @@ def request_new_access_token(supabase: Client, athlete_id: int) -> str:
             try:
                 db.update_access_token(supabase, athlete_id,
                                        access_token, expires_at)
-                if refresh_token != db.get_latest_refresh_token(supabase, athlete_id):
+                if refresh_token != stored_refresh_token:
                     db.update_refresh_token(
                         supabase, athlete_id, refresh_token)
                     logging.info('successfully refreshed refresh token')
                 logging.info('successfully refreshed access token')
-                return access_token
             except Exception as e:
                 logging.error('error updating tokens:')
                 logging.error(e)
@@ -131,7 +131,7 @@ def request_new_access_token(supabase: Client, athlete_id: int) -> str:
     except Exception as e:
         logging.error('error requesting refresh token:')
         logging.error(e)
-    return None
+    return access_token
 
 
 def verify_strava_creds(athlete_id: int, email: str, password: str) -> bool:
