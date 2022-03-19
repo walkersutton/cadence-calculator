@@ -4,6 +4,7 @@ import time
 import requests
 
 from flaskr import config
+from flaskr.auth import get_strava_credential
 from flaskr.gpx import create_gpx
 from flaskr.cadence import generate_cadence_data
 from flaskr.webdriver import delete_activity
@@ -23,14 +24,18 @@ class Activity:
     '''
     # TODO - do we actually need athlete ID? should we store access token instead?
 
-    def __init__(self, activity_id: int, athlete_id: int, access_token: int) -> None:
+    def __init__(self, activity_id: int, athlete_id: int, access_token: int, supabase) -> None:
         ''' Initializes an Activity object
 
         Args:
             activity_id:
-                The id of the activity
+                The id of this activity
             athlete_id:
-                The id of the athlete
+                The id of this athlete
+            access_token:
+                The current access_token for this athlete
+            supabase:
+                a supabase Client object
         '''
 
         def set_gear_ratio(self: Activity) -> None:
@@ -38,7 +43,6 @@ class Activity:
             ''' Sets the gear ratio 
             Activity description note: 
             * Each line in the description is delimited by "\r\n" 
-
 
             '''
             try:
@@ -67,6 +71,7 @@ class Activity:
         self.chainring = None
         self.cog = None
         self.access_token = access_token
+        self.supabase = supabase
         try:
             headers = {'Authorization': f'Bearer {access_token}'}
             params = {'include_all_efforts': 'false'}
@@ -217,28 +222,17 @@ class Activity:
             Whether or not this activity was deleted successfully
             TODO - maybe instead of depending on return value here, we listen for a post DELETE? - seems better
         '''
-        athlete_id = self.obj['athlete']['id']
-        activity_id = self.obj['id']
-        logging.info('beginning to delete activity')
-        # TODO
-        # grab email/passwords from storage , ooooooooof
-
         try:
-            if athlete_id == int(config.TEST_ATHLETE_ID):
-                email = config.TEST_ATHLETE_EMAIL
-                password = config.TEST_ATHLETE_PASSWORD
-            elif athlete_id == int(config.PERSONAL_ATHLETE_ID):
-                email = config.PERSONAL_STRAVA_EMAIL
-                password = config.PERSONAL_STRAVA_PASSWORD
-            else:
-                logging.error('delete_activity: athlete_id is invalid')
+            athlete_id = self.obj['athlete']['id']
+            activity_id = self.obj['id']
+            logging.info('beginning to delete activity')
+            email, password = get_strava_credential(self.supabase, athlete_id)
+            if not(email and password):
+                logging.error('email or password was not set')
                 return False
         except Exception as e:
             logging.error('error getting strava credentials')
             logging.error(e)
-        if not(email and password):
-            logging.error('email or password was not set')
-            return False
 
         return delete_activity(email, password, activity_id)
 

@@ -163,7 +163,7 @@ def handle_event(event: dict) -> str:
                 if not athlete_scope or athlete_scope != SCOPE:
                     raise Exception(  # todo pick a better exception type
                         f'This athlete does not have proper scope authorization')
-                activity = Activity(object_id, owner_id, access_token)
+                activity = Activity(object_id, owner_id, access_token, supabase)
                 if activity.requires_cadence_data():
 
                     #

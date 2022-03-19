@@ -9,8 +9,7 @@ import requests
 from cryptography.fernet import Fernet
 from supabase_py import create_client, Client
 
-from flaskr import config
-from flaskr import forms
+from flaskr import config, forms, webdriver
 
 
 bp = Blueprint('auth', __name__)
@@ -138,7 +137,7 @@ def insert_scope_record(supabase: Client, athlete_id: int, scope: str) -> None:
     insert_record(supabase, 'scope_record', insert_query)
 
 
-def insert_strava_credential(supabase: Client, athlete_id: int, encrypted_email: bytes, encrypted_password: bytes) -> None:
+def insert_strava_credential(supabase: Client, athlete_id: int, email: str, password: str) -> None:
     ''' Stores a new set of encrypted credentials
 
     Args:
@@ -151,17 +150,15 @@ def insert_strava_credential(supabase: Client, athlete_id: int, encrypted_email:
         encrypted_password:
             this athlete's password, encrypted
     '''
+    key = bytes(config.CIPHER_KEY, 'utf-8')
+    fernet = Fernet(key)
+    encrypted_email = fernet.encrypt(bytes(email, 'utf-8')).decode('utf-8')
+    encrypted_password = fernet.encrypt(bytes(password, 'utf-8')).decode('utf-8')
     insert_query = {
         'athlete_id': athlete_id,
         'email': encrypted_email,
         'password': encrypted_password
     }
-    # key = Fernet.generate_key()  # probably going to use a secret here to store the key
-    # fernet = Fernet(key)
-    # encrypted_email = fernet.encrypt(
-    #     bytes(form.email.data, 'utf-8'))
-    # encrypted_password = fernet.encrypt(
-    #     bytes(form.password.data, 'utf-8'))
     insert_record(supabase, 'strava_credential', insert_query)
 
 
@@ -224,7 +221,7 @@ def update_strava_credential(supabase: Client, athlete_id: int, email: str, pass
     pass
 
 
-def token_exchange(code: str, scope: str) -> int:
+def token_exchange(supabase: Client, code: str, scope: str) -> int:
     ''' Requests and stores refresh and access tokens from Strava
 
     Args:
@@ -251,7 +248,6 @@ def token_exchange(code: str, scope: str) -> int:
             access_token = obj['access_token']
             # token_type = obj['token_type']  # TODO
             try:
-                supabase = create_db_conn()
                 insert_access_token(supabase, athlete_id,
                                     access_token, expires_at)
                 insert_refresh_token(supabase, athlete_id, refresh_token)
@@ -430,8 +426,12 @@ def get_strava_credential(supabase: Client, athlete_id: int) -> tuple:
     try:
         tup = supabase.table('strava_credential').select('email, password').eq(
             'athlete_id', str(athlete_id)).execute()['data'][0]
-        email, password = tup['email'], tup['password']
-        # TODO decrypt
+        encrypted_email_bytes, encrypted_password_bytes = tup['email'].encode('utf-8'), tup['password'].encode('utf-8')
+
+        key = bytes(config.CIPHER_KEY, 'utf-8')
+        fernet = Fernet(key)
+        email = fernet.decrypt(encrypted_email_bytes)
+        password = fernet.decrypt(encrypted_password_bytes)
         return (email, password)
     except Exception as e:
         logging.error('error getting strava credentials')
@@ -439,14 +439,11 @@ def get_strava_credential(supabase: Client, athlete_id: int) -> tuple:
     return None
 
 
-def verify_strava_creds(email: str, password: str) -> bool:
+def verify_strava_creds(athlete_id: int, email: str, password: str) -> bool:
     ''' Determines if the provided email and password are valid Strava credentials
 
     '''
-    # selenium work here
-    # attempt to login
-    # grab class at top
-    return email and password
+    return webdriver.verify_strava_creds(athlete_id, email, password)
 
 
 @bp.route('/auth', methods=['GET', 'POST'])
@@ -455,16 +452,15 @@ def auth():
     Strava auth redirect
     '''
     form = forms.StravaCredsForm()
+    supabase = create_db_conn()
     if request.method == 'POST':
+        form.athlete_id.data = 92665595
         if form.validate():  # also form.validate_on_submit which checks post and validate - might want?
-            email, password = form.email.data, form.password.data
-            if verify_strava_creds(email, password):
-                # insert_strava_credential(
-                #     athlete_id, encrypted_email, encrypted_password)
-                pass
+            athlete_id, email, password = form.athlete_id.data, form.email.data, form.password.data
+            if verify_strava_creds(athlete_id, email, password):
+                insert_strava_credential(supabase, athlete_id, email, password)
             status = 'success'
         else:
-            # TODO CLEAN
             return render_template('auth.html', title='Authorization', status='missing creds', form=form)
 
         return render_template('auth.html', title='Authorization', status=status)
@@ -475,7 +471,7 @@ def auth():
         scope = request.args.get('scope')
         status = ''
         if scope == SCOPE:
-            form.athlete_id.data = token_exchange(code, scope)
+            form.athlete_id.data = token_exchange(supabase, code, scope)
             status = 'good scope'
         else:
             status = 'bad scope'

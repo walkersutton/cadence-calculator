@@ -12,6 +12,7 @@ SERVER_DOMAIN = 'https://cadecalc.app'
 
 SUPABASE_URL = os.environ.get('CC_SUPABASE_URL')
 SUPABASE_KEY = os.environ.get('CC_SUPABASE_KEY')
+CIPHER_KEY = os.environ.get('CC_SUPABASE_CIPHER_KEY')
 
 TEST_ATHLETE_ID = os.environ.get('CC_TEST_ATHLETE_ID')
 TEST_ATHLETE_EMAIL = os.environ.get('CC_TEST_ATHLETE_EMAIL')
