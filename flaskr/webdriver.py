@@ -37,27 +37,33 @@ def verify_strava_creds(athlete_id: int, email: str, password: str) -> webdriver
         driver.find_element(By.ID, value='email').send_keys(email)
         driver.find_element(By.ID, value='password').send_keys(password)
         driver.find_element(By.ID, 'login-button').click()
-        # do some check to verify logged in and verify that the logged in user has the same athlete_id associated with email on file
-        if athlete_id:
-            print('oh shit mate')
+        html = driver.find_element(By.XPATH, value='/html')
+        classes = set(html.get_attribute('className').split(' '))
+        if 'logged-in' in classes:
+            for element in driver.find_elements(By.CLASS_NAME, 'nav-link'):
+                href = element.get_attribute('href')
+                if href and '/athletes/' in element.get_attribute('href'):
+                    parsed_athlete_id = int(href.split('/')[-1])
+                    if parsed_athlete_id == athlete_id:
+                        logging.info(
+                            f'successfully verified credentials for this athlete {athlete_id}')
+                        return driver
+                    else:
+                        logging.error(
+                            f'valid credentials, but for a different user {athlete_id}, {parsed_athlete_id}')
+                        # maybe there's a link to another athlete on the page? might want to do a better job about getting the link in the top right to this user's profile
+        else:
+            logging.error('incorrect strava credentials')
     except NoSuchElementException as e:
-        logging.error('Element not found:')
+        logging.error('verify_strava_creds: Element not found:')
         logging.error(e)
-        driver.quit()
-        return None
     except Exception as e:
         logging.error('verify_strava_creds: Generic Selenium exception:')
         logging.error(e)
-        driver.quit()
+    finally:
+        if driver:
+            driver.quit()
         return None
-
-    # selenium work here
-    # attempt to login
-    # grab class at top
-    # also verify athlete_id matches?
-    # could theoretically be valid login for the wrong athelte
-    # verify user is logged in - can check for the existence of a class in body/root tag
-    # driver.find_element(By.XPATH, value='//button[@class="btn-accept-cookie-banner"]').click() - pretty sure this is unnecessary
 
 
 def delete_activity(athlete_id: int, email: str, password: str, activity_id: int) -> bool:
@@ -77,7 +83,6 @@ def delete_activity(athlete_id: int, email: str, password: str, activity_id: int
     '''
     driver = verify_strava_creds(athlete_id, email, password)
     if not driver:
-        pass
         logging.error(
             f'Attempted to delete an activity {activity_id} for athlete {athlete_id}, but could not verify Strava credentials')
         return False
@@ -97,12 +102,12 @@ def delete_activity(athlete_id: int, email: str, password: str, activity_id: int
         # make a call to the strava api and see if the activity is still available
         # or maybe we actually just use the /subscribe post endpoint giving us a delete event - less api hits
     except NoSuchElementException as e:
-        logging.error('Element not found:')
+        logging.error('delete_activity: Element not found:')
         logging.error(e)
         driver.quit()
         return False
     except Exception as e:
-        logging.error('Generic Selenium exception:')
+        logging.error('delete_activity: Generic Selenium exception:')
         logging.error(e)
         driver.quit()
         return False

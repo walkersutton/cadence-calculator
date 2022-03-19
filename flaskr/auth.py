@@ -134,7 +134,8 @@ def request_new_access_token(supabase: Client, athlete_id: int) -> str:
     return access_token
 
 
-def verify_strava_creds(athlete_id: int, email: str, password: str) -> bool:
+def verify_strava_creds(athlete_id: int, email: str, password: str) -> Client:
+    # TODO - bit of an awkward return - maybe add a flag to return active client / boolean?
     ''' Determines if the provided email and password are valid Strava credentials
 
     '''
@@ -146,32 +147,38 @@ def auth():
     '''
     Strava auth redirect
     '''
+    status = None
     form = forms.StravaCredsForm()
-    supabase = db.create_db_conn()
-    if request.method == 'POST':
-        form.athlete_id.data = 1
-        if form.validate():  # also form.validate_on_submit which checks post and validate - might want?
-            athlete_id, email, password = form.athlete_id.data, form.email.data, form.password.data
-            if verify_strava_creds(athlete_id, email, password):
-                db.insert_strava_credential(
-                    supabase, athlete_id, email, password)
-            status = 'success'
+    form.athlete_id.data = 1
+    if form.validate_on_submit():  # GOOD POST
+        athlete_id, email, password = form.athlete_id.data, form.email.data, form.password.data
+        driver = verify_strava_creds(athlete_id, email, password)
+        if driver:
+            driver.quit()
+            status = 'good creds'
+            supabase = db.create_db_conn()
+            db.insert_strava_credential(
+                supabase, athlete_id, email, password)
         else:
-            return render_template('auth.html', title='Authorization', status='missing creds', form=form)
-
-        return render_template('auth.html', title='Authorization', status=status)
-
-    else:
+            status = 'bad creds'
+    else:  # GET OR BAD POST
         code = request.args.get('code')
         error = request.args.get('error')
         scope = request.args.get('scope')
-        status = ''
-        if scope == SCOPE:
-            form.athlete_id.data = token_exchange(supabase, code, scope)
-            status = 'good scope'
-        else:
-            status = 'bad scope'
         if error:
-            status = 'error'
-        # TODO: dynamic title here? - for template
-        return render_template('auth.html', title='Authorization', status=status, auth_url=auth_url(), form=form)
+            status = 'strava error'
+        elif scope:  # return from strava
+            if scope == SCOPE:
+                supabase = db.create_db_conn()
+                form.athlete_id.data = token_exchange(supabase, code, scope)
+                status = 'good scope'
+            else:
+                status = 'bad scope'
+        else:  # failed post
+            # TODO verify that athlete_id is passed to template on retry
+            status = 'bad form'
+
+    # TODO dynamic title
+    if not status:
+        status = 'unknown'
+    return render_template('auth.html', title='Authorization', status=status, auth_url=auth_url(), form=form)
