@@ -7,7 +7,7 @@ from flask import request
 import requests
 
 from flaskr import config, db, forms, webdriver
-from supabase_py import Client
+from supabase import Client
 
 
 bp = Blueprint('auth', __name__)
@@ -149,7 +149,7 @@ def auth():
     form = forms.StravaCredsForm()
     supabase = db.create_db_conn()
     if request.method == 'POST':
-        form.athlete_id.data = 92665595
+        form.athlete_id.data = 1
         if form.validate():  # also form.validate_on_submit which checks post and validate - might want?
             athlete_id, email, password = form.athlete_id.data, form.email.data, form.password.data
             if verify_strava_creds(athlete_id, email, password):

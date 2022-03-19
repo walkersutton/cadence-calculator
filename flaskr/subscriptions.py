@@ -9,7 +9,9 @@ from flask import request
 import requests
 
 from flaskr.activities import Activity
-from flaskr.auth import SCOPE, create_db_conn, get_athlete_scope, get_access_token
+from flaskr.auth import SCOPE
+from flaskr.db import create_db_conn, get_athlete_scope, get_access_token
+
 from flaskr import config
 
 bp = Blueprint('subscriptions', __name__)

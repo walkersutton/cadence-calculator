@@ -4,7 +4,7 @@ import time
 import requests
 
 from flaskr import config
-from flaskr.auth import get_strava_credential
+from flaskr.db import get_strava_credential
 from flaskr.gpx import create_gpx
 from flaskr.cadence import generate_cadence_data
 from flaskr.webdriver import delete_activity

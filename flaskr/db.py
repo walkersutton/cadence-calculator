@@ -1,8 +1,8 @@
 import logging
 import time
 
-from cryptography import Fernet
-from supabase_py import create_client, Client
+from cryptography.fernet import Fernet
+from supabase import create_client, Client
 
 from flaskr import auth, config
 
