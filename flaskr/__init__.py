@@ -43,9 +43,9 @@ def create_app(test_config=None) -> Flask:
     def help():
         return render_template('help.html', title='Help')
 
-    @app.route('/unfortunately')
+    @app.route('/strava-api-snag')
     def unfortunately():
-        return render_template('unfortunately.html', title='Unfortunately...')
+        return render_template('strava-api-snag.html', title='Strava API Workaround')
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(subscriptions.bp)

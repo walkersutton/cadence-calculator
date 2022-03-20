@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<h2>{{ title }}</h2>
+
+<h4>The Snag</h4>
+<p>
+    On January 17, 2017, The Strava API team decided to <a
+        href="https://developers.strava.com/docs/changelog/">deprecate the delete activity API endpoint</a>. In order to
+    modify an activity on Strava (e.g. add generated cadence data), you must first delete the original activity before
+    replacing it with a modified version. Otherwise, the modified activity will be flagged as a duplicate, and it will
+    prohibited from uploading. Hopefully, you can see how this might be a problem.
+</p>
+</br>
+<h4>The Solution</h4>
+<p>
+    We figured out a way to instead spawn a headless browser to login as the user and delete their activity using the
+    Strava website. Although this does introduce security concerns, it seemed like the best way to get around this
+    roadblock. We do encrypt Strava credentials using a 256-bit AES cipher, but ideally, we wouldn't be storing
+    anyone's credentials. If you have any suggestions for better ways to circumvent this issue, please do <a
+        href="info@cadecalc.app">let us know</a>. This is an open source project, so you may also contribute on <a
+        href='https://github.com/walkersutton/cadence-calculator'>github</a>.
+</p>
+
+{% endblock %}
