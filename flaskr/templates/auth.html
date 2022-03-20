@@ -4,102 +4,136 @@
 
 <h2>{{ title }}</h2>
 
-{% if status == 'good creds' %}
-
+{% if title == 'Ride On!' %}
 <p>
-    Successfully complete all steps for connecting your Strava account! Ride away!</br>Click <a href='/help'>here</a> to
-    learn how the tool works.
+    Successfully connected your Strava account!
+    </br>
+    Click <a href='/help'>here</a> to learn how to use Cadence Calculator.
 </p>
-
-{% elif status == 'bad creds' %}
-<p>the email and password you provided are invalid. please try again</p>
-<p>getting here if creds are good but wrong athlete TODO need to fix</p>
-<form method="POST" action="/auth">
-    {{ form.hidden_tag() }}
-    {{ form.email.label }}{{ form.email }}
-    {% if form.email.errors %}
-    <ul class="errors">
-        {% for error in form.email.errors %}
-        <li>{{ error }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-    {{ form.password.label }}{{ form.password }}
-    <ul class="errors">
-        {% if form.password.errors %}
-        {% for error in form.password.errors %}
-        <li>{{ error }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-    <input type="submit" value="Verify">
-</form>
-
-{% elif status == 'strava error' %}
-<p>There was an error, try again. If you continue to have issues, send us an email TODO</p>
-
-{% elif status == 'good scope' %}
+{% elif title == 'Bad Credentials' %}
 <p>
-    Completed step 1/2 of connecting Strava account. One more step!
+    The email and password you provided is invalid.
+    </br>
+    Please try again.
 </p>
-<form method="POST" action="/auth">
-    {{ form.hidden_tag() }}
-    {{ form.email.label }}{{ form.email }}
-    {% if form.email.errors %}
-    <ul class="errors">
-        {% for error in form.email.errors %}
-        <li>{{ error }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-    {{ form.password.label }}{{ form.password }}
-    <ul class="errors">
-        {% if form.password.errors %}
-        {% for error in form.password.errors %}
-        <li>{{ error }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-    <input type="submit" value="Verify">
-</form>
-{% elif status == 'bad scope' %}
+{% elif title == 'Wrong User' %}
 <p>
-    You need to provide more access, try again
+    The email and password you provided are for a different Strava account.
+    </br>
+    Please try again.
 </p>
-<a class='underline' href={{ auth_url }}>
-    Authorize Cadence Calculator access to your Strava data
-</a>
+{% elif title == 'Error Accessing Strava' %}
+<p>
+    There was an error accessing Strava.
+    </br>
+    Please try again.
+</p>
+<div id='strava-connect' class='center round-border'>
+    <a href={{ auth_url }}>
+        <img src={{ url_for('static', filename='images/btn_strava_connectwith_orange.svg' ) }}
+            alt='Connect with Strava'>
+    </a>
+</div>
+</br>
+<p>
+    If you continue to have trouble logging in, please <a href="mailto:info@cadecalc.app">send us an email</a>.
+</p>
+{% elif title == 'One More Step!' %}
+<p>
+    Successfully authorized Strava API access.
+    </br>
+    </br>
+    We also need to store your Strava account credentials for <a href="/strava-api-unfortunate-update">unfortunate
+        reasons</a>.
+    </br>
+    </br>
+    We encrypt your email and password using a 256-bit AES cipher to securely store your data. If you ever <a
+        href="/help#revoke-access">revoke access</a> to Cadence Calculator through your Strava account, we will promptly
+    delete your
+    credentials.
+</p>
+{% elif title == "Oops, You'll need to Retry That" %}
+<p>
+    We need more access to your Strava account.
+    </br>
+    You probably forgot to check a box. The image below shows you how to grant all the necessary permissions.
+</p>
+<div id='strava-connect' class='center round-border'>
+    <a href={{ auth_url }}>
+        <img src={{ url_for('static', filename='images/btn_strava_connectwith_orange.svg' ) }}
+            alt='Connect with Strava'>
+    </a>
+</div>
+</br>
 <h3>
     TODO - replace gif with gif showing how to provide all permissions needed
 </h3>
 <img class='gif' src={{ url_for('static', filename='images/auth.gif' ) }} alt='Give more permissions'>
-
-{% elif status == 'bad form' %}
-<p>you are missing some values in the form. try again</p>
-<form method="POST" action="/auth">
-    {{ form.hidden_tag() }}
-    {{ form.email.label }}{{ form.email }}
-    {% if form.email.errors %}
-    <ul class="errors">
-        {% for error in form.email.errors %}
-        <li>{{ error }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-    {{ form.password.label }}{{ form.password }}
-    <ul class="errors">
-        {% if form.password.errors %}
-        {% for error in form.password.errors %}
-        <li>{{ error }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-    <input type="submit" value="Verify">
-</form>
-{% elif status == 'unknown' %}
-<p>something went wrong. :(</p>
+{% elif title in ('Try Again', 'Something Went Wrong') %}
+<p>
+    You should try again from the beginning.
+</p>
+<div id='strava-connect' class='center round-border'>
+    <a href={{ auth_url }}>
+        <img src={{ url_for('static', filename='images/btn_strava_connectwith_orange.svg' ) }}
+            alt='Connect with Strava'>
+    </a>
+</div>
+</br>
+<p>
+    If you continue to have troubles, please <a href="mailto:info@cadecalc.app">send us an email</a>.
+</p>
 {% else %}
-<p>something really went incredibly wrong. :(</p>
+<p>
+    Something really went incredibly wrong.
+    </br>
+    You should try again from the beginning.
+</p>
+<div id='strava-connect' class='center round-border'>
+    <a href={{ auth_url }}>
+        <img src={{ url_for('static', filename='images/btn_strava_connectwith_orange.svg' ) }}
+            alt='Connect with Strava'>
+    </a>
+</div>
+</br>
+<p>
+    If you continue to have troubles, please <a href="mailto:info@cadecalc.app">send us an email</a>.
+</p>
+{% endif %}
+
+{% if title in ('One More Step!', 'Bad Credentials', 'Wrong User') %}
+</br>
+<div class='center center-text'>
+    <form method="POST" action="/auth">
+        {{ form.hidden_tag() }}
+        {{ form.email.label }}
+        </br>
+        {{ form.email }}
+        {% if form.email.errors %}
+        <ul class="errors">
+            {% for error in form.email.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        </br>
+        </br>
+        {{ form.password.label }}
+        </br>
+        {{ form.password }}
+        {% if form.password.errors %}
+        <ul class="errors">
+            {% for error in form.password.errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        </br>
+        </br>
+        <input type="submit" value="Verify Credentials">
+    </form>
+</div>
+{% else %}
 {% endif %}
 
 {% endblock %}

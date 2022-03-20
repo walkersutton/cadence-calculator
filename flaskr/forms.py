@@ -3,6 +3,6 @@ from wtforms import PasswordField, validators, EmailField, HiddenField
 
 
 class StravaCredsForm(FlaskForm):
-    email = EmailField('email', [validators.DataRequired()])
-    password = PasswordField('password', [validators.DataRequired()])
+    email = EmailField('Strava Email', [validators.DataRequired()])
+    password = PasswordField('Strava Password', [validators.DataRequired()])
     athlete_id = HiddenField(validators=[validators.DataRequired()])

@@ -134,7 +134,7 @@ def request_new_access_token(supabase: Client, athlete_id: int) -> str:
     return access_token
 
 
-def verify_strava_creds(athlete_id: int, email: str, password: str) -> Client:
+def verify_strava_creds(athlete_id: int, email: str, password: str) -> tuple:
     # TODO - bit of an awkward return - maybe add a flag to return active client / boolean?
     ''' Determines if the provided email and password are valid Strava credentials
 
@@ -147,38 +147,36 @@ def auth():
     '''
     Strava auth redirect
     '''
-    status = None
+    title = None
     form = forms.StravaCredsForm()
     form.athlete_id.data = 1
     if form.validate_on_submit():  # GOOD POST
         athlete_id, email, password = form.athlete_id.data, form.email.data, form.password.data
-        driver = verify_strava_creds(athlete_id, email, password)
-        if driver:
-            driver.quit()
-            status = 'good creds'
+        status, accessory = verify_strava_creds(athlete_id, email, password)
+        if status:
+            accessory.quit()
+            title = 'Ride On!'
             supabase = db.create_db_conn()
             db.insert_strava_credential(
                 supabase, athlete_id, email, password)
         else:
-            status = 'bad creds'
+            title = accessory
     else:  # GET OR BAD POST
         code = request.args.get('code')
         error = request.args.get('error')
         scope = request.args.get('scope')
         if error:
-            status = 'strava error'
+            title = 'Error Accessing Strava'
         elif scope:  # return from strava
             if scope == SCOPE:
                 supabase = db.create_db_conn()
                 form.athlete_id.data = token_exchange(supabase, code, scope)
-                status = 'good scope'
+                title = 'One More Step!'
             else:
-                status = 'bad scope'
+                title = "Oops, You'll Need To Retry That"
         else:  # failed post
-            # TODO verify that athlete_id is passed to template on retry
-            status = 'bad form'
+            title = 'Try Again'
 
-    # TODO dynamic title
-    if not status:
-        status = 'unknown'
-    return render_template('auth.html', title='Authorization', status=status, auth_url=auth_url(), form=form)
+    if not title:
+        title = 'Something Went Wrong'
+    return render_template('auth.html', title=title, auth_url=auth_url(), form=form)

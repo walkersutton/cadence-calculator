@@ -12,7 +12,7 @@ from selenium.common.exceptions import NoSuchElementException
 from flaskr import config
 
 
-def verify_strava_creds(athlete_id: int, email: str, password: str) -> webdriver.Chrome:
+def verify_strava_creds(athlete_id: int, email: str, password: str) -> tuple:
     ''' Determines if the provided email and password are valid credentials for the provided athlete
 
     Args:
@@ -47,10 +47,12 @@ def verify_strava_creds(athlete_id: int, email: str, password: str) -> webdriver
                     if parsed_athlete_id == athlete_id:
                         logging.info(
                             f'successfully verified credentials for this athlete {athlete_id}')
-                        return driver
+                        return (True, driver)
                     else:
                         logging.error(
                             f'valid credentials, but for a different user {athlete_id}, {parsed_athlete_id}')
+                        return (False, 'Wrong User')
+
                         # maybe there's a link to another athlete on the page? might want to do a better job about getting the link in the top right to this user's profile
         else:
             logging.error('incorrect strava credentials')
@@ -63,7 +65,7 @@ def verify_strava_creds(athlete_id: int, email: str, password: str) -> webdriver
     finally:
         if driver:
             driver.quit()
-        return None
+        return (False, 'Bad Credentials')
 
 
 def delete_activity(athlete_id: int, email: str, password: str, activity_id: int) -> bool:
