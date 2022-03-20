@@ -52,7 +52,7 @@
     delete your
     credentials.
 </p>
-{% elif title == "Oops, You'll need to Retry That" %}
+{% elif title == "Oops, You'll Need to Retry That" %}
 <p>
     We need more access to your Strava account.
     </br>
@@ -65,9 +65,6 @@
     </a>
 </div>
 </br>
-<h3>
-    TODO - replace gif with gif showing how to provide all permissions needed
-</h3>
 <img class='gif' src={{ url_for('static', filename='images/auth.gif' ) }} alt='Give more permissions'>
 {% elif title in ('Try Again', 'Something Went Wrong') %}
 <p>
