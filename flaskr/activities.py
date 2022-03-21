@@ -259,8 +259,8 @@ class Activity:
         Returns:
             The upload_id of the activity
         '''
-
-        name = f'{self.obj["name"]}'
+        orig_name = self.obj['name']
+        name = orig_name[:-2].rstrip() if len(orig_name >= 2) and orig_name[-2:] == 'cc' else orig_name
         description = f'{self.obj["description"]} - cadence by cadecalc.app'
         trainer = self.obj['trainer']
         commute = self.obj['commute']
