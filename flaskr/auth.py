@@ -150,7 +150,7 @@ def auth():
     title = None
     form = forms.StravaCredsForm()
     form.athlete_id.data = 1
-    if form.validate_on_submit():  # GOOD POST
+    if form.validate_on_submit():
         athlete_id, email, password = form.athlete_id.data, form.email.data, form.password.data
         status, accessory = verify_strava_creds(athlete_id, email, password)
         if status:
@@ -161,20 +161,20 @@ def auth():
                 supabase, athlete_id, email, password)
         else:
             title = accessory
-    else:  # GET OR BAD POST
+    else:
         code = request.args.get('code')
         error = request.args.get('error')
         scope = request.args.get('scope')
         if error:
             title = 'Error Accessing Strava'
-        elif scope:  # return from strava
+        elif scope:
             if scope == SCOPE:
                 supabase = db.create_db_conn()
                 form.athlete_id.data = token_exchange(supabase, code, scope)
                 title = 'One More Step!'
             else:
                 title = "Oops, You'll Need To Retry That"
-        else:  # failed post
+        else:
             title = 'Try Again'
 
     if not title:
