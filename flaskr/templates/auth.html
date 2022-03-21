@@ -47,10 +47,10 @@
         reasons</a>.
     </br>
     </br>
-    We encrypt your email and password using a 256-bit AES cipher to securely store your data. If you ever <a
+    We encrypt your email and password using <a href="https://github.com/fernet/spec/blob/master/Spec.md">Fernet</a> (an
+    implementation of symmetric authenticated cryptography) to securely store your data. If you ever <a
         href="/help#revoke-access">revoke access</a> to Cadence Calculator through your Strava account, we will promptly
-    delete your
-    credentials.
+    delete your credentials.
 </p>
 {% elif title == "Oops, You'll Need to Retry That" %}
 <p>

@@ -17,10 +17,11 @@
 <p>
     We figured out a way to instead spawn a headless browser to login as the user and delete their activity using the
     Strava website. Although this does introduce security concerns, it seemed like the best way to get around this
-    roadblock. We do encrypt Strava credentials using a 256-bit AES cipher, but ideally, we wouldn't be storing
-    anyone's credentials. If you have any suggestions for better ways to circumvent this issue, please do <a
-        href="info@cadecalc.app">let us know</a>. This is an open source project, so you may also contribute on <a
-        href='https://github.com/walkersutton/cadence-calculator'>github</a>.
+    roadblock. We encrypt Strava credentials using <a
+        href="https://github.com/fernet/spec/blob/master/Spec.md">Fernet</a> (an implementation of symmetric
+    authenticated cryptography), but ideally, we wouldn't be storing anyone's credentials. If you have any suggestions for
+    better ways to circumvent this issue, please do <a href="info@cadecalc.app">let us know</a>. This is an open source
+    project, so you may also contribute on <a href='https://github.com/walkersutton/cadence-calculator'>github</a>.
 </p>
 
 {% endblock %}
