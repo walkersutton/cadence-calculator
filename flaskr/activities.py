@@ -4,6 +4,7 @@ import time
 import requests
 
 from flaskr import config
+from flaskr.auth import verify_strava_creds
 from flaskr.db import get_strava_credential
 from flaskr.gpx import create_gpx
 from flaskr.cadence import generate_cadence_data
@@ -229,12 +230,17 @@ class Activity:
             email, password = get_strava_credential(self.supabase, athlete_id)
             if not(email and password):
                 logging.error('email or password was not set')
-                return False
+            status, driver = verify_strava_creds(athlete_id, email, password)
+            if status:
+                return delete_activity(driver, email, password, activity_id)
+            else:
+                logging.error(f'delete_activity: stored credentials for athlete {athlete_id} are no longer valid')
+                
         except Exception as e:
-            logging.error('error getting strava credentials')
+            logging.error('delete_activity: error deleting activity')
             logging.error(e)
 
-        return delete_activity(email, password, activity_id)
+        return False
 
     def upload_activity(self, data_type: str, external_id: str, file_path: str) -> int:
         ''' Uploads an Activity
