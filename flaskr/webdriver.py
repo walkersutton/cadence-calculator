@@ -68,10 +68,12 @@ def verify_strava_creds(athlete_id: int, email: str, password: str) -> tuple:
         return (False, 'Bad Credentials')
 
 
-def delete_activity(athlete_id: int, email: str, password: str, activity_id: int) -> bool:
+def delete_activity(driver: webdriver.Chrome, athlete_id: int, email: str, password: str, activity_id: int) -> bool:
     ''' Deletes the given activity_id
 
     Args:
+        driver:
+            an active webdriver
         athlete_id:
             the id of the athlete
         email:
