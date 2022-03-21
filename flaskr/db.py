@@ -70,6 +70,56 @@ def update_record(supabase: Client, table_name: str, query: dict, key: str, val:
         logging.error(e)
 
 
+def select_record(supabase: Client, table_name: str, columns: list, athlete_id: int) -> dict:
+    ''' Selects a record from a table
+
+    Args:
+        supabase:
+            connection to Supabase
+        table_name:
+            the name of the Supabase table
+        columns:
+            the columns to be selected
+        athlete_id:
+            the athlete_id of the athlete
+        val:
+            the value of the record's key to be update
+    '''
+
+    try:
+        return supabase.table(table_name).select(', '.join(columns)).eq('athlete_id', str(athlete_id)).execute().data[0]
+    except Exception as e:
+        logging.error(f'error selecting records from {table_name}')
+        logging.error(f'columns: {", ".join(columns)}')
+        logging.error(f'athlete_id: {athlete_id}')
+        logging.error(e)
+
+
+def update_record(supabase: Client, table_name: str, query: dict, key: str, val: str) -> None:
+    ''' Updates a record into a table
+
+    Args:
+        supabase:
+            connection to Supabase
+        table_name:
+            the name of the Supabase table
+        query:
+            the object to be updated
+        key:
+            the column name of the key
+        val:
+            the value of the record's key to be update
+    '''
+    try:
+        supabase.table(table_name).update(query).eq(key, val).execute()
+    except Exception as e:
+        logging.error(f'error updating records in {table_name}')
+        logging.error(f'query: {query}')
+        logging.error(f'key: {key}')
+        logging.error(f'val: {val}')
+        logging.error(e)
+
+
 def get_access_token(supabase: Client, athlete_id: int) -> str:
     ''' Gets an access_token for the athlete
 
@@ -86,8 +136,8 @@ def get_access_token(supabase: Client, athlete_id: int) -> str:
     logging.info(f'Getting access token for athlete: {athlete_id}')
     access_token = None
     try:
-        data = supabase.table('access_token').select('access_token, expires_at').eq(
-            'athlete_id', str(athlete_id)).execute()['data'][0]
+        data = select_record(supabase, 'access_token', [
+                             'access_token_code', 'expires_at'], athlete_id)
         access_token, expires_at = data['access_token'], data['expires_at']
         if expires_at < round(time.time()):
             access_token = auth.request_new_access_token(supabase, athlete_id)
@@ -97,30 +147,6 @@ def get_access_token(supabase: Client, athlete_id: int) -> str:
         logging.error(f'data: {data}')
         logging.error(e)
     return access_token
-
-
-def get_latest_access_token(supabase: Client, athlete_id: int):
-    # def get_latest_access_token(supabase: Client, athlete_id: int) -> tuple[int, str]:
-    ''' Gets the youngest access token for this user
-
-    Args:
-        supabase:
-            connection to Supabase
-        athlete_id:
-            the id of the athlete
-    Returns:
-        The access_token and expiration time
-    '''
-    # TODO - this method will no longer be needed once UPDATEs are functional
-    # expires_at_access_token_query = f'SELECT expires_at, access_token FROM access_token WHERE athlete_id={athlete_id};'
-    data = supabase.table('access_token').select('*').execute()['data']
-    expires_at = 0
-    access_token = None
-    for record in data:
-        if record['athlete_id'] == athlete_id and record['expires_at'] > expires_at:
-            expires_at, access_token = record['expires_at'], record['access_token_code']
-    return expires_at, access_token
-    # TODO add None handling
 
 
 def insert_access_token(supabase: Client, athlete_id: int, access_token: str, expires_at: int) -> None:
@@ -184,8 +210,9 @@ def get_refresh_token(supabase: Client, athlete_id: int) -> str:
     '''
     refresh_token_code = None
     try:
-        refresh_token_code = supabase.table('refresh_token').select('refresh_token_code').eq(
-            'athlete_id', str(athlete_id)).execute()['data'][0]['refresh_token_code']
+        data = select_record(supabase, 'refresh_token', [
+                             'refresh_token_code'], athlete_id)['']
+        refresh_token_code = data['refresh_token_code']
     except Exception as e:
         logging.error(f'error getting refresh token for athlete {athlete_id}')
         logging.error(e)
@@ -257,8 +284,8 @@ def get_athlete_scope(supabase: Client, athlete_id: int) -> str:
     '''
     scope = None
     try:
-        scope = supabase.table('scope_record').select('scope').eq(
-            'athlete_id', str(athlete_id)).execute()['data'][0]['scope']
+        data = select_record(supabase, 'scope_record', ['scope'], athlete_id)
+        scope = data['scope']
     except Exception as e:
         logging.error('error getting athlete scope')
         logging.error(f'athlete_id: {athlete_id}')
@@ -296,10 +323,10 @@ def get_strava_credential(supabase: Client, athlete_id: int) -> tuple:
         This athlete's (email, password)
     '''
     try:
-        tup = supabase.table('strava_credential').select('email, password').eq(
-            'athlete_id', str(athlete_id)).execute()['data'][0]
-        encrypted_email_bytes, encrypted_password_bytes = tup['email'].encode(
-            'utf-8'), tup['password'].encode('utf-8')
+        data = select_record(supabase, 'strava_credentials', [
+                             'email', 'password'], athlete_id)
+        encrypted_email_bytes, encrypted_password_bytes = data['email'].encode(
+            'utf-8'), data['password'].encode('utf-8')
 
         key = bytes(config.CIPHER_KEY, 'utf-8')
         fernet = Fernet(key)
