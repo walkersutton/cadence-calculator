@@ -85,14 +85,22 @@ def select_record(supabase: Client, table_name: str, columns: list, athlete_id: 
         val:
             the value of the record's key to be update
     '''
-
     try:
-        return supabase.table(table_name).select(', '.join(columns)).eq('athlete_id', str(athlete_id)).execute().data[0]
+        record = supabase.table(table_name).select(', '.join(columns)).eq(
+            'athlete_id', str(athlete_id)).execute().data
+        if record:
+            return record[0]
+        else:
+            logging.error(f"select_record didn't select any records")
+            logging.error(f'table_name: {table_name}')
+            logging.error(f'columns: {", ".join(columns)}')
+            logging.error(f'athlete_id: {athlete_id}')
     except Exception as e:
         logging.error(f'error selecting records from {table_name}')
         logging.error(f'columns: {", ".join(columns)}')
         logging.error(f'athlete_id: {athlete_id}')
         logging.error(e)
+    return None
 
 
 def update_record(supabase: Client, table_name: str, query: dict, key: str, val: str) -> None:
@@ -215,6 +223,7 @@ def get_refresh_token(supabase: Client, athlete_id: int) -> str:
         refresh_token_code = data['refresh_token_code']
     except Exception as e:
         logging.error(f'error getting refresh token for athlete {athlete_id}')
+        logging.error(f'data: {data}')
         logging.error(e)
     return refresh_token_code
     # TODO add None handling
@@ -288,6 +297,7 @@ def get_athlete_scope(supabase: Client, athlete_id: int) -> str:
         scope = data['scope']
     except Exception as e:
         logging.error('error getting athlete scope')
+        logging.error(f'data: {data}')
         logging.error(f'athlete_id: {athlete_id}')
         logging.error(e)
     return scope
@@ -323,7 +333,7 @@ def get_strava_credential(supabase: Client, athlete_id: int) -> tuple:
         This athlete's (email, password)
     '''
     try:
-        data = select_record(supabase, 'strava_credentials', [
+        data = select_record(supabase, 'strava_credential', [
                              'email', 'password'], athlete_id)
         encrypted_email_bytes, encrypted_password_bytes = data['email'].encode(
             'utf-8'), data['password'].encode('utf-8')
@@ -335,6 +345,7 @@ def get_strava_credential(supabase: Client, athlete_id: int) -> tuple:
         return (email, password)
     except Exception as e:
         logging.error('error getting strava credentials')
+        logging.error(f'data: {data}')
         logging.error(e)
     return None
 
@@ -371,4 +382,25 @@ def update_strava_credential(supabase: Client, athlete_id: int, email: str, pass
     update strava credentials if current credentails are no longer valid
     probably send email to user and provide link to html form where they update credentials
     '''
-    pass
+    key = bytes(config.CIPHER_KEY, 'utf-8')
+    fernet = Fernet(key)
+    encrypted_email = fernet.encrypt(bytes(email, 'utf-8')).decode('utf-8')
+    encrypted_password = fernet.encrypt(
+        bytes(password, 'utf-8')).decode('utf-8')
+    update_query = {
+        'athlete_id': athlete_id,
+        'email': encrypted_email,
+        'password': encrypted_password
+    }
+    update_record(supabase, 'strava_credential',
+                  update_query, 'athlete_id', athlete_id)
+
+
+def set_strava_credential(supabase: Client, athlete_id: int, email: str, password: str) -> None:
+    '''
+    TODO
+    '''
+    if get_strava_credential(supabase, athlete_id):
+        update_strava_credential(supabase, athlete_id, email, password)
+    else:
+        insert_strava_credential(supabase, athlete_id, email, password)

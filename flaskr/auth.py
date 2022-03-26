@@ -157,7 +157,7 @@ def auth():
             accessory.quit()
             title = 'Ride On!'
             supabase = db.create_db_conn()
-            db.insert_strava_credential(
+            db.set_strava_credential(
                 supabase, athlete_id, email, password)
         else:
             title = accessory
