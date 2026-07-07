@@ -4,6 +4,8 @@
 
 <!-- **Read more about this project [here](https://walkercsutton.com/projects/cadence-calculator/todo).** -->
 
+<img width="300" alt="website screenshot" src="https://github.com/user-attachments/assets/6a6db4a7-cc96-442f-b89b-5df60ca7a71d" />
+
 ![Cadence Data Generation](https://i.imgur.com/ThHWdmr.gif)
 
 Cadence Calculator **generates cadence data for your fixed gear GPX activities.**
